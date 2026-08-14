@@ -202,7 +202,7 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
     const defaultBranch = (await repoRes.json()).default_branch || 'main';
 
     // 2. Get the tree for the default branch
-    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/trees/${defaultBranch}`, {
+    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/trees/${defaultBranch}?recursive=1`, {
         headers: { 
             'Authorization': `token ${t}`,
             'Accept': 'application/vnd.github.v3+json'
@@ -218,21 +218,81 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
         throw new Error("Config file not found in repository.");
     }
 
-    // 3. Get the blob
+    // 3. Get the settings blob
     const blobRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/blobs/${syncFileNode.sha}`, {
         headers: { 
             'Authorization': `token ${t}`,
             'Accept': 'application/vnd.github.v3+json'
         }
     });
-    if (!blobRes.ok) throw new Error("Failed to download blob data");
-    
+    if (!blobRes.ok) throw new Error("Failed to download config data");
     const blobData = await blobRes.json();
-    if (!blobData.content) {
-        throw new Error("Invalid response from GitHub API");
+    const settingsContent = decodeURIComponent(escape(atob(blobData.content.replace(/\n/g, ''))));
+    
+    let parsedSettings: any = {};
+    try {
+        parsedSettings = JSON.parse(settingsContent);
+    } catch(e) {}
+    
+    // Check if it's the old monolithic format
+    if (parsedSettings.version === 2 && Array.isArray(parsedSettings.snippets)) {
+        return settingsContent; // Already monolithic
+    }
+
+    // 4. Fetch all snippets from snippets/ folder
+    const snippetNodes = tree.filter((node: any) => node.path.startsWith('snippets/') && node.type === 'blob');
+    const snippets = [];
+    
+    for (const node of snippetNodes) {
+        try {
+            const snipRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/blobs/${node.sha}`, {
+                headers: { 
+                    'Authorization': `token ${t}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (!snipRes.ok) continue;
+            const snipData = await snipRes.json();
+            const snipContent = decodeURIComponent(escape(atob(snipData.content.replace(/\n/g, ''))));
+            
+            // Reconstruct Snippet object from filename and content
+            // filename format: snippets/Title-id.ext
+            const filename = node.path.split('/').pop();
+            const lastDash = filename.lastIndexOf('-');
+            const lastDot = filename.lastIndexOf('.');
+            
+            if (lastDash === -1 || lastDot === -1) continue; // Invalid format
+            
+            const title = filename.substring(0, lastDash);
+            const id = filename.substring(lastDash + 1, lastDot);
+            const ext = filename.substring(lastDot + 1);
+            
+            // Reverse mapping for language (best effort, or fallback to text)
+            let language = 'Text';
+            const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML' };
+            if (langMap[ext]) language = langMap[ext];
+            
+            snippets.push({
+                id: id,
+                title: decodeURIComponent(title),
+                code_content: snipContent,
+                language: language,
+                tags: '',
+                is_favorite: 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
+        } catch(e) {
+            console.error("Failed to parse snippet", node.path, e);
+        }
     }
     
-    // Decode base64 content
-    const content = decodeURIComponent(escape(atob(blobData.content.replace(/\n/g, ''))));
-    return content;
+    // Combine them for importData
+    const result = {
+        version: 2,
+        settings: parsedSettings,
+        snippets: snippets
+    };
+    
+    return JSON.stringify(result);
 }
