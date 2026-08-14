@@ -13,16 +13,16 @@ import SettingsModal from './components/SettingsModal';
 import { ToastContainer } from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
 import ShareModal from './components/ShareModal';
-import { getDb } from './db';
-import { initDb, syncSnippetsToCloud, pullSnippetsFromCloud } from './sync';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { AppSettings } from './types';
 import { t } from './i18n';
 import { showToast } from './utils/toast';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { applyTheme } from './themes';
+import { readSettingsFromFile, writeSettingsToFile } from './utils/configStore';
 
 const defaultSettings: AppSettings = {
+    enableClipboardSniffer: false,
     themeColor: '#06b6d4',
     themePreset: 'classic',
     fontSize: 14,
@@ -52,6 +52,7 @@ function App() {
   const [sharingSnippet, setSharingSnippet] = useState<Snippet | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'favorites'>('all');
   
+  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   const [appSettings, setAppSettings] = useState<AppSettings>(defaultSettings);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'appearance' | 'languages' | 'sidebar'>('appearance');
@@ -103,6 +104,22 @@ function App() {
         } catch {}
     }
     
+    // Load config from file
+    readSettingsFromFile().then(saved => {
+        if (saved) {
+            setAppSettings(saved);
+        }
+        setIsConfigLoaded(true);
+    }).catch(() => {
+        setIsConfigLoaded(true);
+    });
+
+    
+    // Load file config asynchronously
+    readSettingsFromFile().then(saved => {
+        if (saved) setAppSettings(saved);
+    }).catch(() => {});
+    
     // Sync On Start
     if (initialSettings.syncOnStart && initialSettings.githubToken) {
         // Delay slightly to let UI render first
@@ -135,7 +152,12 @@ function App() {
   // Local settings sync
   useEffect(() => {
       localStorage.setItem('snippetcore_settings', JSON.stringify(appSettings));
-  }, [appSettings]);
+      if (!isConfigLoaded) return;
+      const timeout = setTimeout(() => {
+          writeSettingsToFile(appSettings);
+      }, 500);
+      return () => clearTimeout(timeout);
+  }, [appSettings, isConfigLoaded]);
 
   // Global Shortcut Registration
   useEffect(() => {

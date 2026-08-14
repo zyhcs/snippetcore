@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export type ToastType = 'success' | 'error' | 'info';
 
 export function ToastContainer() {
-    const [toasts, setToasts] = useState<{ id: number, message: string, type: ToastType }[]>([]);
+    const [toasts, setToasts] = useState<{ id: number, message: string, type: ToastType, onClick?: () => void, duration: number }[]>([]);
 
     useEffect(() => {
         const handleToast = (e: any) => {
             const id = Date.now();
-            setToasts(prev => [...prev, { id, message: e.detail.message, type: e.detail.type }]);
+            const duration = e.detail.duration || 3000;
+            setToasts(prev => [...prev, { id, message: e.detail.message, type: e.detail.type, onClick: e.detail.onClick, duration }]);
             setTimeout(() => {
                 setToasts(prev => prev.filter(t => t.id !== id));
-            }, 3000);
+            }, duration);
         };
         window.addEventListener('show-toast', handleToast);
         return () => window.removeEventListener('show-toast', handleToast);
@@ -31,7 +32,14 @@ export function ToastContainer() {
             pointerEvents: 'none'
         }}>
             {toasts.map(t => (
-                <div key={t.id} style={{
+                <div key={t.id} 
+                    onClick={() => {
+                        if (t.onClick) {
+                            t.onClick();
+                            setToasts(prev => prev.filter(item => item.id !== t.id));
+                        }
+                    }}
+                    style={{
                     background: 'var(--card-bg, #1a1d24)',
                     color: 'var(--text-primary)',
                     padding: '12px 20px',
@@ -44,12 +52,17 @@ export function ToastContainer() {
                     gap: '12px',
                     fontSize: '0.95rem',
                     fontWeight: 500,
-                    animation: 'toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), toastFadeOut 0.3s ease 2.7s forwards'
+                    cursor: t.onClick ? 'pointer' : 'default',
+                    pointerEvents: 'auto',
+                    animation: `toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1), toastFadeOut 0.3s ease ${(t.duration / 1000) - 0.3}s forwards`
                 }}>
                     {t.type === 'success' && <i className="ri-checkbox-circle-fill" style={{ fontSize: '1.2rem', color: 'var(--theme-color)' }}></i>}
                     {t.type === 'error' && <i className="ri-error-warning-fill" style={{ fontSize: '1.2rem', color: 'var(--danger-color, #ef4444)' }}></i>}
                     {t.type === 'info' && <i className="ri-information-fill" style={{ fontSize: '1.2rem', color: 'var(--theme-color)' }}></i>}
-                    {t.message}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span>{t.message}</span>
+                        {t.onClick && <span style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '2px' }}>Click to view</span>}
+                    </div>
                 </div>
             ))}
         </div>

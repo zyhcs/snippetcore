@@ -2,6 +2,9 @@ export type Locale = 'zh' | 'en';
 
 export const translations = {
     zh: {
+        configLocation: '本地配置文件路径',
+        configLocationDesc: '存储应用配置信息的 JSON 文件',
+        changeLocation: '更改位置',
         settings: '设置',
         appearance: '外观属性',
         language: '语言',
@@ -95,10 +98,15 @@ export const translations = {
         pullNow: '强制从云端拉取',
         enableGlobalShortcut: '启用全局呼出快捷键',
         globalShortcutKey: '快捷键设定 (点击此处录制键盘按键)',
+        enableClipboardSniffer: '启用剪贴板代码智能嗅探 (自动捕捉您复制的代码)',
+        snifferDetect: '检测到您刚刚复制了一段代码，点击立即保存！',
         editMode: '编辑',
         previewMode: '预览'
     },
     en: {
+        configLocation: 'Local Config File',
+        configLocationDesc: 'Path to local settings JSON',
+        changeLocation: 'Change Location',
         settings: 'Settings',
         appearance: 'Appearance',
         language: 'Language',
@@ -192,6 +200,8 @@ export const translations = {
         pullNow: 'Force Pull from Cloud',
         enableGlobalShortcut: 'Enable Global Shortcut',
         globalShortcutKey: 'Shortcut Key (e.g. CmdOrControl+Shift+Space)',
+        enableClipboardSniffer: 'Enable Clipboard Code Sniffer (Auto-catch copied code)',
+        snifferDetect: 'New code detected in clipboard! Click to save now.',
         editMode: 'Edit',
         previewMode: 'Preview'
     }

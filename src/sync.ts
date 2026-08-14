@@ -1,4 +1,4 @@
-import JSZip from 'jszip';
+
 
 const getExt = (lang: string) => {
     const l = lang.toLowerCase();
@@ -81,21 +81,30 @@ export async function syncToRepo(token: string, repoName: string | null, content
         baseCommitSha = (await refRes.json()).object.sha;
     }
 
-    // Parse content
-    const parsed = JSON.parse(content);
-    const snippets = parsed.snippets || [];
-    const settings = parsed.settings || {};
+    // 1. Prepare tree items
+    const tree: any[] = [];
+    
+    // We expect `content` to be the monolithic JSON containing settings and snippets (from exportData)
+    // We will extract ONLY the settings for snippetconfig.json
+    let parsedContent;
+    try {
+        parsedContent = JSON.parse(content);
+    } catch(e) {
+        throw new Error("Invalid sync payload");
+    }
 
-    const tree = [];
-    // Settings file
+    const pureSettings = parsedContent.settings || parsedContent;
+
+    // Settings file (PURE)
     tree.push({
-        path: 'settings.json',
+        path: 'snippetconfig.json',
         mode: '100644',
         type: 'blob',
-        content: JSON.stringify(settings, null, 2)
+        content: JSON.stringify(pureSettings, null, 2)
     });
 
-    // Snippets
+    // Snippets (INDIVIDUAL)
+    const snippets = parsedContent.snippets || [];
     for (const s of snippets) {
         const ext = getExt(s.language);
         const filename = `snippets/${sanitize(s.title)}-${s.id}.${ext}`;
@@ -106,14 +115,6 @@ export async function syncToRepo(token: string, repoName: string | null, content
             content: s.code_content || '\n'
         });
     }
-
-    // Include the monolithic backup file for fast pulling
-    tree.push({
-        path: 'snippetcore-sync.json',
-        mode: '100644',
-        type: 'blob',
-        content
-    });
 
     // Create Tree (Since we don't provide base_tree, it effectively replaces everything in the root)
     const treeRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/trees`, {
@@ -212,9 +213,9 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
     }
     const tree = (await treeRes.json()).tree;
     
-    const syncFileNode = tree.find((node: any) => node.path === 'snippetcore-sync.json');
+    const syncFileNode = tree.find((node: any) => node.path === 'snippetconfig.json' || node.path === 'snippetcore-sync.json');
     if (!syncFileNode) {
-        throw new Error("Backup file 'snippetcore-sync.json' not found in repository.");
+        throw new Error("Config file not found in repository.");
     }
 
     // 3. Get the blob

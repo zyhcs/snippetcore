@@ -11,6 +11,29 @@ export async function getDb() {
     return dbInstance;
 }
 
+export async function getInternalSetting(key: string): Promise<string | null> {
+    try {
+        const db = await getDb();
+        const result = await db.select<{value: string}[]>('SELECT value FROM internal_settings WHERE key = $1', [key]);
+        return result.length > 0 ? result[0].value : null;
+    } catch (e) {
+        console.warn("Failed to read internal setting (table might not exist yet):", e);
+        return null;
+    }
+}
+
+export async function setInternalSetting(key: string, value: string): Promise<void> {
+    try {
+        const db = await getDb();
+        await db.execute(
+            'INSERT OR REPLACE INTO internal_settings (key, value) VALUES ($1, $2)',
+            [key, value]
+        );
+    } catch (e) {
+        console.error("Failed to write internal setting:", e);
+    }
+}
+
 export async function getSnippets(): Promise<Snippet[]> {
     const db = await getDb();
     return await db.select<Snippet[]>('SELECT * FROM snippets ORDER BY updated_at DESC');
@@ -84,6 +107,10 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
             // V2 format (settings + snippets)
             snippetsToImport = parsed.snippets;
             importedSettings = parsed.settings;
+        } else if (typeof parsed === 'object' && parsed !== null) {
+            // Pure settings JSON (e.g. from snippetconfig.json on GitHub)
+            snippetsToImport = [];
+            importedSettings = parsed.settings || parsed;
         } else {
             throw new Error("Invalid backup format");
         }

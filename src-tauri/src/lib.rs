@@ -7,21 +7,32 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create_snippets_table",
-        sql: "CREATE TABLE IF NOT EXISTS snippets (
-                id TEXT PRIMARY KEY,
-                title TEXT,
-                code_content TEXT,
-                language TEXT,
-                tags TEXT,
-                is_favorite BOOLEAN DEFAULT 0,
-                created_at DATETIME,
-                updated_at DATETIME
-            );",
-        kind: MigrationKind::Up,
-    }];
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create_snippets_table",
+            sql: "CREATE TABLE IF NOT EXISTS snippets (
+                    id TEXT PRIMARY KEY,
+                    title TEXT,
+                    code_content TEXT,
+                    language TEXT,
+                    tags TEXT,
+                    is_favorite BOOLEAN DEFAULT 0,
+                    created_at DATETIME,
+                    updated_at DATETIME
+                );",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "create_internal_settings_table",
+            sql: "CREATE TABLE IF NOT EXISTS internal_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                );",
+            kind: MigrationKind::Up,
+        }
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())

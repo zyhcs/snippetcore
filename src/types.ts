@@ -42,4 +42,28 @@ export interface AppSettings {
     syncPullStrategy: 'all' | 'snippets_only' | 'settings_only';
     enableGlobalShortcut: boolean;
     globalShortcutKey: string;
+    enableClipboardSniffer: boolean;
 }
+
+export const defaultSettings: AppSettings = {
+    themeColor: '#06b6d4',
+    themePreset: 'classic',
+    fontSize: 14,
+    defaultLanguage: 'JavaScript',
+    languages: ['ABAP', 'C#', 'C++', 'CSS', 'Dart', 'Go', 'HTML', 'Java', 'JavaScript', 'JSON', 'Kotlin', 'Markdown', 'Objective-C', 'PHP', 'Python', 'Ruby', 'Rust', 'Shell', 'SQL', 'Swift', 'Text', 'TypeScript', 'Vue', 'XML', 'YAML'],
+    locale: 'zh',
+    pinnedLanguages: ['JavaScript', 'HTML', 'CSS', 'Python', 'Go', 'JSON'],
+    pinnedTags: [],
+    syncProvider: 'none',
+    githubToken: '',
+    githubRepoName: 'snippetcore-sync',
+    lastSyncTime: '',
+    syncAutoInterval: 0,
+    syncOnStart: false,
+    syncOnSave: false,
+    syncPullStrategy: 'all',
+    enableGlobalShortcut: true,
+    globalShortcutKey: 'CommandOrControl+Shift+Space',
+    enableClipboardSniffer: false
+};
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppSettings, Snippet } from '../types';
 import { Locale, t } from '../i18n';
 import { PRESET_THEMES } from '../themes';
@@ -20,7 +20,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncStatus, setSyncStatus] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
     const [showToken, setShowToken] = useState(false);
+    const [configPath, setConfigPath] = useState<string>('');
     const locale = localSettings.locale || 'zh';
+
+    useEffect(() => {
+        import('../utils/configStore').then(({ getConfigFilePath }) => {
+            getConfigFilePath().then(setConfigPath);
+        });
+    }, []);
 
     const handleSave = () => {
         onSave(localSettings);
@@ -330,6 +337,35 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
 
                         {activeTab === 'sync' && (
                             <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                {/* Local Configuration File Panel */}
+                                <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px' }}>
+                                    <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                                        <i className="ri-folder-settings-line" style={{ color: 'var(--theme-color)', fontSize: '1.2rem' }}></i>
+                                        {t('configLocation', locale) || 'Configuration Location'}
+                                    </h3>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+                                        {t('configLocationDesc', locale) || 'Path to local settings JSON file'}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <input 
+                                            type="text" 
+                                            value={configPath} 
+                                            readOnly 
+                                            style={{ flex: 1, padding: '10px 16px', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-secondary)', outline: 'none' }} 
+                                        />
+                                        <button className="btn-secondary" onClick={async () => {
+                                            const { selectConfigFilePath } = await import('../utils/configStore');
+                                            const newPath = await selectConfigFilePath();
+                                            if (newPath) {
+                                                setConfigPath(newPath);
+                                                showToast(t('settingsSaved', locale) || 'Configuration path updated', 'success');
+                                            }
+                                        }}>
+                                            {t('changeLocation', locale) || 'Change Location'}
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {/* Local Backup Panel */}
                                 <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '24px' }}>
                                     <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>

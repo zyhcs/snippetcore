@@ -12,12 +12,24 @@
     "sql:allow-execute",
     "dialog:default",
     "fs:default",
-    "fs:allow-write-text-file",
-    "fs:allow-read-text-file",
-    "fs:allow-read-file",
-    "fs:allow-write-file",
     "clipboard-manager:default",
     "clipboard-manager:allow-write-text",
-    "clipboard-manager:allow-read-text"
+    "clipboard-manager:allow-read-text",
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "**" }]
+    }
   ]
 }
