@@ -308,7 +308,7 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
             
             // Reverse mapping for language (best effort, or fallback to text)
             let language = 'Text';
-            const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML' };
+            const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'svg': 'SVG', 'mermaid': 'Mermaid', 'echarts': 'ECharts' };
             if (langMap[ext]) language = langMap[ext];
             
             const meta = metaMap[id] || {};

@@ -24,6 +24,7 @@ import { ruby } from '@codemirror/legacy-modes/mode/ruby';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
 import { swift } from '@codemirror/legacy-modes/mode/swift';
 import MarkdownViewer from './MarkdownViewer';
+import HtmlViewer from './HtmlViewer';
 import { t } from '../i18n';
 
 interface EditorModalProps {
@@ -143,7 +144,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                             ))}
                         </select>
                         
-                        {language === 'Markdown' && (
+                        {['Markdown', 'HTML', 'SVG', 'Mermaid', 'ECharts'].includes(language) && (
                             <>
                                 <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                                     <button 
@@ -189,9 +190,13 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                 </div>
                 
                 <div className="modal-editor" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
-                    {language === 'Markdown' && isPreviewMode ? (
+                    {['Markdown', 'HTML', 'SVG', 'Mermaid', 'ECharts'].includes(language) && isPreviewMode ? (
                         <div className="md-scroll-wrapper" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-                            <MarkdownViewer content={codeContent} />
+                            {language === 'Markdown' ? (
+                                <MarkdownViewer content={codeContent} />
+                            ) : (
+                                <HtmlViewer content={codeContent} language={language} />
+                            )}
                         </div>
                     ) : (
                         <CodeMirror
