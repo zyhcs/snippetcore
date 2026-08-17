@@ -23,14 +23,15 @@ export async function setConfigFilePath(path: string): Promise<void> {
     await setInternalSetting(CONFIG_FILE_KEY, path);
 }
 
-export async function readSettingsFromFile(): Promise<AppSettings> {
+export async function readSettingsFromFile(fallbackSettings?: AppSettings): Promise<AppSettings> {
     try {
         const filePath = await getConfigFilePath();
         const fileExists = await exists(filePath);
         if (!fileExists) {
             // Create default config file if it doesn't exist
-            await writeSettingsToFile(defaultSettings);
-            return defaultSettings;
+            const toWrite = fallbackSettings || defaultSettings;
+            await writeSettingsToFile(toWrite);
+            return toWrite;
         }
         
         const content = await readTextFile(filePath);

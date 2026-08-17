@@ -105,7 +105,7 @@ function App() {
     }
     
     // Load config from file
-    readSettingsFromFile().then(saved => {
+    readSettingsFromFile(initialSettings).then(saved => {
         if (saved) {
             setAppSettings(saved);
         }
@@ -115,10 +115,6 @@ function App() {
     });
 
     
-    // Load file config asynchronously
-    readSettingsFromFile().then(saved => {
-        if (saved) setAppSettings(saved);
-    }).catch(() => {});
     
     // Sync On Start
     if (initialSettings.syncOnStart && initialSettings.githubToken) {
