@@ -27,6 +27,16 @@ const getLanguageIcon = (lang: string) => {
 
 import { Locale, t } from '../i18n';
 
+
+export const getTagColor = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
+    return colors[Math.abs(hash) % colors.length];
+};
+
 const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, onToggleFavorite, onCopy, onShare, locale = 'zh' }) => {
     let tags: string[] = [];
     try {
@@ -82,9 +92,13 @@ const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, o
                 />
             </div>
             <div className="card-tags">
-                <span className="tag tag-purple">{snippet.language || 'Text'}</span>
+                <span className="hash-tag" style={{ '--tag-color': getTagColor(snippet.language || 'Text'), cursor: 'default' } as React.CSSProperties}>
+                    {snippet.language || 'Text'}
+                </span>
                 {tags.map((tag: string, index: number) => (
-                    <span key={index} className="tag">{tag}</span>
+                    <span key={index} className="hash-tag" style={{ '--tag-color': getTagColor(tag), cursor: 'default' } as React.CSSProperties}>
+                        <i className="ri-hashtag"></i> {tag}
+                    </span>
                 ))}
             </div>
         </div>
