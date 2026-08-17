@@ -29,6 +29,7 @@ export interface AppSettings {
     fontSize: number;
     defaultLanguage: string;
     languages: string[];
+    installedLanguages: string[];
     locale: 'zh' | 'en';
     pinnedLanguages: string[];
     pinnedTags: string[];
@@ -50,7 +51,8 @@ export const defaultSettings: AppSettings = {
     themePreset: 'classic',
     fontSize: 14,
     defaultLanguage: 'JavaScript',
-    languages: ['ABAP', 'C#', 'C++', 'CSS', 'Dart', 'Go', 'HTML', 'SVG', 'Mermaid', 'ECharts', 'Java', 'JavaScript', 'JSON', 'Kotlin', 'Markdown', 'Objective-C', 'PHP', 'Python', 'Ruby', 'Rust', 'Shell', 'SQL', 'Swift', 'Text', 'TypeScript', 'Vue', 'XML', 'YAML'],
+    languages: ['ABAP', 'C#', 'C++', 'CSS', 'Dart', 'Go', 'HTML', 'Java', 'JavaScript', 'JSON', 'Kotlin', 'Markdown', 'Objective-C', 'PHP', 'Python', 'Ruby', 'Rust', 'Shell', 'SQL', 'Swift', 'Text', 'TypeScript', 'Vue', 'XML', 'YAML', 'SVG', 'Mermaid', 'ECharts'],
+    installedLanguages: [],
     locale: 'zh',
     pinnedLanguages: ['JavaScript', 'HTML', 'SVG', 'Mermaid', 'ECharts', 'CSS', 'Python', 'Go', 'JSON'],
     pinnedTags: [],

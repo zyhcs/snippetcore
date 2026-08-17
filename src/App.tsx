@@ -27,7 +27,7 @@ const defaultSettings: AppSettings = {
     themePreset: 'classic',
     fontSize: 14,
     defaultLanguage: 'JavaScript',
-    languages: ['ABAP', 'C#', 'C++', 'CSS', 'Dart', 'Go', 'HTML', 'Java', 'JavaScript', 'JSON', 'Kotlin', 'Markdown', 'Objective-C', 'PHP', 'Python', 'Ruby', 'Rust', 'Shell', 'SQL', 'Swift', 'Text', 'TypeScript', 'Vue', 'XML', 'YAML'],
+            languages: ['ABAP', 'C#', 'C++', 'CSS', 'Dart', 'Go', 'HTML', 'Java', 'JavaScript', 'JSON', 'Kotlin', 'Markdown', 'Objective-C', 'PHP', 'Python', 'Ruby', 'Rust', 'Shell', 'SQL', 'Swift', 'Text', 'TypeScript', 'Vue', 'XML', 'YAML'], installedLanguages: [],
     locale: 'zh',
     pinnedLanguages: ['JavaScript', 'HTML', 'CSS', 'Python', 'Go', 'JSON'],
     pinnedTags: [],

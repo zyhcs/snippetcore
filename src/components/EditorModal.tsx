@@ -2,27 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Snippet, SnippetFormData, AppSettings } from '../types';
 import CodeMirror from '@uiw/react-codemirror';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { markdown } from '@codemirror/lang-markdown';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
-import { java } from '@codemirror/lang-java';
-import { cpp } from '@codemirror/lang-cpp';
-import { json } from '@codemirror/lang-json';
-import { rust } from '@codemirror/lang-rust';
-import { sql } from '@codemirror/lang-sql';
-import { xml } from '@codemirror/lang-xml';
-import { php } from '@codemirror/lang-php';
-import { yaml } from '@codemirror/lang-yaml';
-import { vue } from '@codemirror/lang-vue';
-import { abapMode } from 'codemirror6-abap';
-import { StreamLanguage } from '@codemirror/language';
-import { csharp, dart, kotlin, objectiveC } from '@codemirror/legacy-modes/mode/clike';
-import { go } from '@codemirror/legacy-modes/mode/go';
-import { ruby } from '@codemirror/legacy-modes/mode/ruby';
-import { shell } from '@codemirror/legacy-modes/mode/shell';
-import { swift } from '@codemirror/legacy-modes/mode/swift';
+import { Extension } from '@codemirror/state';
+import { LANGUAGE_REGISTRY } from '../utils/languages';
+
 import MarkdownViewer from './MarkdownViewer';
 import HtmlViewer from './HtmlViewer';
 import { t } from '../i18n';
@@ -35,35 +17,7 @@ interface EditorModalProps {
     settings: AppSettings;
 }
 
-export const getLanguageExtension = (language: string) => {
-    switch (language) {
-        case 'ABAP': return StreamLanguage.define(abapMode as any);
-        case 'C#': return StreamLanguage.define(csharp as any);
-        case 'C++': return cpp();
-        case 'CSS': return css();
-        case 'Dart': return StreamLanguage.define(dart as any);
-        case 'Go': return StreamLanguage.define(go as any);
-        case 'HTML': return html();
-        case 'Java': return java();
-        case 'JavaScript':
-        case 'TypeScript': return javascript({ typescript: language === 'TypeScript' });
-        case 'JSON': return json();
-        case 'Kotlin': return StreamLanguage.define(kotlin as any);
-        case 'Markdown': return markdown();
-        case 'Objective-C': return StreamLanguage.define(objectiveC as any);
-        case 'PHP': return php();
-        case 'Python': return python();
-        case 'Ruby': return StreamLanguage.define(ruby as any);
-        case 'Rust': return rust();
-        case 'Shell': return StreamLanguage.define(shell as any);
-        case 'SQL': return sql();
-        case 'Swift': return StreamLanguage.define(swift as any);
-        case 'Vue': return vue();
-        case 'XML': return xml();
-        case 'YAML': return yaml();
-        default: return [];
-    }
-};
+
 
 const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onDelete, settings }) => {
     const [title, setTitle] = useState('');
@@ -73,6 +27,31 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
     const [newTag, setNewTag] = useState('');
     const [isFavorite, setIsFavorite] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const [languageExtension, setLanguageExtension] = useState<Extension[]>([]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadExt = async () => {
+            const langDef = LANGUAGE_REGISTRY.find(l => l.id === language);
+            if (langDef && langDef.load) {
+                try {
+                    const ext = await langDef.load();
+                    if (isMounted && ext) {
+                        setLanguageExtension([ext]);
+                    } else if (isMounted) {
+                        setLanguageExtension([]);
+                    }
+                } catch (e) {
+                    console.error("Failed to load language extension", e);
+                    if (isMounted) setLanguageExtension([]);
+                }
+            } else {
+                if (isMounted) setLanguageExtension([]);
+            }
+        };
+        loadExt();
+        return () => { isMounted = false; };
+    }, [language]);
     const locale = settings.locale || 'zh';
 
     useEffect(() => {
@@ -139,7 +118,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                             onChange={(e) => setLanguage(e.target.value)}
                             style={{ padding: '6px 32px 6px 12px', fontSize: '0.85rem' }}
                         >
-                            {settings.languages.map(lang => (
+                            {[...LANGUAGE_REGISTRY.filter(l => l.isBuiltIn).map(l => l.id), ...(settings.installedLanguages || [])].map(lang => (
                                 <option key={lang} value={lang}>{lang}</option>
                             ))}
                         </select>
@@ -203,9 +182,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                             value={codeContent}
                             height="100%"
                             theme={vscodeDark}
-                            extensions={[
-                                getLanguageExtension(language)
-                            ]}
+                            extensions={languageExtension}
                             onChange={(value) => setCodeContent(value)}
                             style={{ flex: 1, fontSize: '0.9rem', overflow: 'auto' }}
                             basicSetup={{

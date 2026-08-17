@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Snippet } from '../types';
 import CodeMirror from '@uiw/react-codemirror';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
-import { getLanguageExtension } from './EditorModal';
+import { Extension } from '@codemirror/state';
+import { LANGUAGE_REGISTRY } from '../utils/languages';
 
 interface SnippetCardProps {
     snippet: Snippet;
@@ -38,6 +39,17 @@ export const getTagColor = (str: string) => {
 };
 
 const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, onToggleFavorite, onCopy, onShare, locale = 'zh' }) => {
+    const [langExt, setLangExt] = useState<Extension[]>([]);
+    useEffect(() => {
+        let isMounted = true;
+        const langDef = LANGUAGE_REGISTRY.find(l => l.id === snippet.language);
+        if (langDef && langDef.load) {
+            langDef.load().then(ext => {
+                if (isMounted && ext) setLangExt([ext]);
+            }).catch(() => {});
+        }
+        return () => { isMounted = false; };
+    }, [snippet.language]);
     let tags: string[] = [];
     try {
         const parsed = JSON.parse(snippet.tags || '[]');
@@ -80,9 +92,7 @@ const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, o
                     value={snippet.code_content}
                     theme={vscodeDark}
                     editable={false}
-                    extensions={[
-                        getLanguageExtension(snippet.language)
-                    ]}
+                    extensions={langExt}
                     basicSetup={{
                         lineNumbers: false,
                         foldGutter: false,

@@ -4,6 +4,7 @@ import { Locale, t } from '../i18n';
 import { PRESET_THEMES } from '../themes';
 import { showToast } from '../utils/toast';
 import { copyToClipboard } from '../utils/clipboard';
+import { LANGUAGE_REGISTRY } from '../utils/languages';
 
 interface SettingsModalProps {
     settings: AppSettings;
@@ -17,8 +18,7 @@ interface SettingsModalProps {
 const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initialTab = 'appearance', onClose, onSave }) => {
     const [localSettings, setLocalSettings] = useState<AppSettings>({ ...settings });
     const [activeTab, setActiveTab] = useState<'appearance' | 'languages' | 'sidebar' | 'sync'>(initialTab);
-    const [newLanguage, setNewLanguage] = useState('');
-    const [isSyncing, setIsSyncing] = useState(false);
+        const [isSyncing, setIsSyncing] = useState(false);
     const [syncStatus, setSyncStatus] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
     const [showToken, setShowToken] = useState(false);
     const [configPath, setConfigPath] = useState<string>('');
@@ -34,33 +34,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
         onSave(localSettings);
     };
 
-    const handleAddLanguage = () => {
-        const lang = newLanguage.trim();
-        if (lang && !localSettings.languages.includes(lang)) {
+    const handleInstallLanguage = (langId: string) => {
+        if (!localSettings.installedLanguages) {
+            localSettings.installedLanguages = [];
+        }
+        if (!localSettings.installedLanguages.includes(langId)) {
             setLocalSettings({
                 ...localSettings,
-                languages: [...localSettings.languages, lang].sort()
+                installedLanguages: [...localSettings.installedLanguages, langId]
             });
-            setNewLanguage('');
         }
     };
 
-    const handleDeleteLanguage = (langToDelete: string) => {
+    const handleUninstallLanguage = (langId: string) => {
+        const newInstalled = (localSettings.installedLanguages || []).filter(l => l !== langId);
         setLocalSettings({
             ...localSettings,
-            languages: localSettings.languages.filter(l => l !== langToDelete)
+            installedLanguages: newInstalled
         });
-        if (localSettings.defaultLanguage === langToDelete) {
+        if (localSettings.defaultLanguage === langId) {
             setLocalSettings(prev => ({
                 ...prev,
-                defaultLanguage: prev.languages[0] || ''
+                defaultLanguage: 'JavaScript',
+                installedLanguages: newInstalled
             }));
         }
     };
 
     return (
         <div className="modal-overlay active" onClick={onClose}>
-            <div className="modal-content settings-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-content settings-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '900px', width: '90%', display: 'flex', flexDirection: 'column' }}>
                 <div className="modal-header">
                     <h2>{t('settings', locale)}</h2>
                     <button className="btn-icon" onClick={onClose}>
@@ -186,7 +189,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         onChange={e => setLocalSettings({...localSettings, defaultLanguage: e.target.value})}
                                         style={{ width: '100%' }}
                                     >
-                                        {localSettings.languages.map(lang => (
+                                        {[...LANGUAGE_REGISTRY.filter(l => l.isBuiltIn).map(l => l.id), ...(localSettings.installedLanguages || [])].map(lang => (
                                             <option key={lang} value={lang}>{lang}</option>
                                         ))}
                                     </select>
@@ -237,42 +240,51 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                         )}
 
                         {activeTab === 'languages' && (
-                            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                
                                 <div>
-                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'block' }}>{t('supportedLanguages', locale)}</label>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '180px', overflowY: 'auto', padding: '12px', background: 'var(--card-bg)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                                        {localSettings.languages.map(lang => (
-                                            <div key={lang} className="lang-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.85rem' }}>
-                                                {lang}
-                                                <i 
-                                                    className="ri-close-line" 
-                                                    style={{ cursor: 'pointer', opacity: 0.6, fontSize: '1rem' }}
-                                                    onClick={() => handleDeleteLanguage(lang)}
-                                                    title={t('delete', locale)}
-                                                ></i>
+                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'block' }}>内置语言 (Built-in)</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                                        {LANGUAGE_REGISTRY.filter(l => l.isBuiltIn).map(lang => (
+                                            <div key={lang.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                                                <span>{lang.name}</span>
+                                                <i className="ri-check-line" style={{ color: 'var(--theme-color)' }}></i>
                                             </div>
                                         ))}
-                                        {localSettings.languages.length === 0 && <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{t('noLanguages', locale)}</span>}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'block' }}>{t('addLanguage', locale)}</label>
-                                    <div style={{ display: 'flex', gap: '12px' }}>
-                                        <input 
-                                            type="text" 
-                                            placeholder="Go, Swift" 
-                                            value={newLanguage}
-                                            onChange={e => setNewLanguage(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && handleAddLanguage()}
-                                            style={{ flex: 1, padding: '10px 16px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', outline: 'none' }}
-                                        />
-                                        <button className="btn-secondary" onClick={handleAddLanguage}>{t('add', locale)}</button>
-                                    </div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                                        {t('addLanguageHint', locale)}
+                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'block' }}>已安装扩展 (Installed)</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                                        {(localSettings.installedLanguages || []).length === 0 && (
+                                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', padding: '8px 0' }}>暂未安装额外语言扩展</div>
+                                        )}
+                                        {(localSettings.installedLanguages || []).map(langId => {
+                                            const lang = LANGUAGE_REGISTRY.find(l => l.id === langId);
+                                            if (!lang) return null;
+                                            return (
+                                                <div key={langId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', border: '1px solid var(--theme-color)' }}>
+                                                    <span>{lang.name}</span>
+                                                    <i className="ri-delete-bin-line" style={{ cursor: 'pointer', color: '#ff4444' }} onClick={() => handleUninstallLanguage(langId)} title="卸载"></i>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'block' }}>未安装 (Available)</label>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                                        {LANGUAGE_REGISTRY.filter(l => !l.isBuiltIn && !(localSettings.installedLanguages || []).includes(l.id)).map(lang => (
+                                            <div key={lang.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', border: '1px solid var(--border-color)' }}>
+                                                <span style={{ color: 'var(--text-secondary)' }}>{lang.name}</span>
+                                                <i className="ri-download-cloud-2-line" style={{ cursor: 'pointer', color: 'var(--text-primary)' }} onClick={() => handleInstallLanguage(lang.id)} title="点击安装"></i>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
                             </div>
                         )}
 

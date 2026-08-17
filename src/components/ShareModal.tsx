@@ -1,11 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Snippet, AppSettings } from '../types';
 import { t } from '../i18n';
 import CodeMirror from '@uiw/react-codemirror';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { EditorView } from '@codemirror/view';
 import * as htmlToImage from 'html-to-image';
-import { getLanguageExtension } from './EditorModal';
+import { Extension } from '@codemirror/state';
+import { LANGUAGE_REGISTRY } from '../utils/languages';
 import { showToast } from '../utils/toast';
 
 interface ShareModalProps {
@@ -18,6 +19,17 @@ const ShareModal: React.FC<ShareModalProps> = ({ snippet, settings, onClose }) =
     const locale = settings.locale || 'zh';
     const previewRef = useRef<HTMLDivElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [langExt, setLangExt] = useState<Extension[]>([]);
+    useEffect(() => {
+        let isMounted = true;
+        const langDef = LANGUAGE_REGISTRY.find(l => l.id === snippet.language);
+        if (langDef && langDef.load) {
+            langDef.load().then(ext => {
+                if (isMounted && ext) setLangExt([ext]);
+            }).catch(() => {});
+        }
+        return () => { isMounted = false; };
+    }, [snippet.language]);
 
     const handleDownload = async () => {
         if (!previewRef.current) return;
@@ -112,7 +124,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ snippet, settings, onClose }) =
                                     value={snippet.code_content}
                                     theme={vscodeDark}
                                     extensions={[
-                                        getLanguageExtension(snippet.language),
+                                        ...(langExt.length ? langExt : []),
                                         EditorView.lineWrapping,
                                     ]}
                                     editable={false}
