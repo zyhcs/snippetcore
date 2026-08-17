@@ -124,10 +124,68 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
             // validate minimally
             if (!s.id || !s.title || !s.code_content) continue;
             
+            try {
+                const existing = await db.select('SELECT * FROM snippets WHERE id = 
+            // validate minimally
+            if (!s.id || !s.title || !s.code_content) continue;
+            
             await db.execute(
                 'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                 [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
             );
+', [s.id]);
+                
+                if (existing && existing.length > 0) {
+                    const local = existing[0];
+                    const localTime = new Date(local.updated_at).getTime();
+                    const remoteTime = new Date(s.updated_at).getTime();
+                    
+                    // If remote is strictly older, skip overriding local
+                    if (remoteTime < localTime) {
+                        continue;
+                    }
+                    
+                    // Preserve local tags if remote tags are empty
+                    let mergedTags = s.tags;
+                    if (!mergedTags || mergedTags === '""' || mergedTags === '[]' || mergedTags === '') {
+                        mergedTags = local.tags;
+                    }
+                    
+                    // Preserve local favorite if remote is 0
+                    let mergedFav = s.is_favorite;
+                    if (!s.is_favorite && local.is_favorite) {
+                        mergedFav = local.is_favorite;
+                    }
+                    
+                    await db.execute(
+                        'UPDATE snippets SET title = 
+            // validate minimally
+            if (!s.id || !s.title || !s.code_content) continue;
+            
+            await db.execute(
+                'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
+            );
+, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
+                        [s.title, s.code_content, s.language, mergedTags, mergedFav ? 1 : 0, s.updated_at, s.id]
+                    );
+                } else {
+                    await db.execute(
+                        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES (
+            // validate minimally
+            if (!s.id || !s.title || !s.code_content) continue;
+            
+            await db.execute(
+                'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
+            );
+, $2, $3, $4, $5, $6, $7, $8)',
+                        [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
+                    );
+                }
+            } catch (e) {
+                console.error("Error importing snippet", s.id, e);
+            }
         }
         
         return importedSettings;
