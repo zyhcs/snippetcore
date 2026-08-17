@@ -103,6 +103,9 @@ export async function syncToRepo(token: string, repoName: string | null, content
         content: JSON.stringify(pureSettings, null, 2)
     });
 
+    // Metadata map
+    const metadataMap: Record<string, any> = {};
+
     // Snippets (INDIVIDUAL)
     const snippets = parsedContent.snippets || [];
     for (const s of snippets) {
@@ -114,7 +117,22 @@ export async function syncToRepo(token: string, repoName: string | null, content
             type: 'blob',
             content: s.code_content || '\n'
         });
+        
+        metadataMap[s.id] = {
+            tags: s.tags,
+            is_favorite: s.is_favorite,
+            created_at: s.created_at,
+            updated_at: s.updated_at
+        };
     }
+    
+    // Add metadata file
+    tree.push({
+        path: 'snippets/meta.json',
+        mode: '100644',
+        type: 'blob',
+        content: JSON.stringify(metadataMap, null, 2)
+    });
 
     // Create Tree (Since we don't provide base_tree, it effectively replaces everything in the root)
     const treeRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/trees`, {
@@ -241,9 +259,31 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
 
     // 4. Fetch all snippets from snippets/ folder
     const snippetNodes = tree.filter((node: any) => node.path.startsWith('snippets/') && node.type === 'blob');
-    const snippets = [];
+    const snippets: any[] = [];
+    
+    // Check if meta.json exists
+    let metaMap: Record<string, any> = {};
+    const metaNode = snippetNodes.find((n: any) => n.path === 'snippets/meta.json');
+    if (metaNode) {
+        try {
+            const metaRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/blobs/${metaNode.sha}`, {
+                headers: { 
+                    'Authorization': `token ${t}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (metaRes.ok) {
+                const metaData = await metaRes.json();
+                const metaContent = decodeURIComponent(escape(atob(metaData.content.replace(/\n/g, ''))));
+                metaMap = JSON.parse(metaContent);
+            }
+        } catch(e) {
+            console.warn("Failed to load meta.json", e);
+        }
+    }
     
     for (const node of snippetNodes) {
+        if (node.path === 'snippets/meta.json') continue;
         try {
             const snipRes = await fetch(`https://api.github.com/repos/${owner}/${actualRepo}/git/blobs/${node.sha}`, {
                 headers: { 
@@ -271,15 +311,16 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
             const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML' };
             if (langMap[ext]) language = langMap[ext];
             
+            const meta = metaMap[id] || {};
             snippets.push({
                 id: id,
                 title: decodeURIComponent(title),
                 code_content: snipContent,
                 language: language,
-                tags: '',
-                is_favorite: 0,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                tags: meta.tags || '',
+                is_favorite: meta.is_favorite || 0,
+                created_at: meta.created_at || new Date().toISOString(),
+                updated_at: meta.updated_at || new Date().toISOString()
             });
         } catch(e) {
             console.error("Failed to parse snippet", node.path, e);
