@@ -108,7 +108,7 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
             snippetsToImport = parsed.snippets;
             importedSettings = parsed.settings;
         } else if (typeof parsed === 'object' && parsed !== null) {
-            // Pure settings JSON (e.g. from snippetconfig.json on GitHub)
+            // Pure settings JSON
             snippetsToImport = [];
             importedSettings = parsed.settings || parsed;
         } else {
@@ -119,21 +119,13 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
         if (strategy === 'snippets_only') importedSettings = null;
 
         const db = await getDb();
-        // Execute inside a simple loop
+        
         for (const s of snippetsToImport) {
             // validate minimally
             if (!s.id || !s.title || !s.code_content) continue;
             
             try {
-                const existing = await db.select('SELECT * FROM snippets WHERE id = 
-            // validate minimally
-            if (!s.id || !s.title || !s.code_content) continue;
-            
-            await db.execute(
-                'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
-            );
-', [s.id]);
+                const existing = await db.select<Snippet[]>('SELECT * FROM snippets WHERE id = $1', [s.id]);
                 
                 if (existing && existing.length > 0) {
                     const local = existing[0];
@@ -151,35 +143,19 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
                         mergedTags = local.tags;
                     }
                     
-                    // Preserve local favorite if remote is 0
+                    // Preserve local favorite if remote is false
                     let mergedFav = s.is_favorite;
                     if (!s.is_favorite && local.is_favorite) {
                         mergedFav = local.is_favorite;
                     }
                     
                     await db.execute(
-                        'UPDATE snippets SET title = 
-            // validate minimally
-            if (!s.id || !s.title || !s.code_content) continue;
-            
-            await db.execute(
-                'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
-            );
-, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
+                        'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
                         [s.title, s.code_content, s.language, mergedTags, mergedFav ? 1 : 0, s.updated_at, s.id]
                     );
                 } else {
                     await db.execute(
-                        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES (
-            // validate minimally
-            if (!s.id || !s.title || !s.code_content) continue;
-            
-            await db.execute(
-                'INSERT OR REPLACE INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
-            );
-, $2, $3, $4, $5, $6, $7, $8)',
+                        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
                         [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
                     );
                 }
