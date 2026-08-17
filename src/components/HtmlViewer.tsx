@@ -78,10 +78,10 @@ ${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
     }, [content, language]);
 
     return (
-        <div style={{ flex: 1, width: '100%', background: '#fff', borderRadius: '8px', overflow: 'hidden', display: 'flex' }}>
+        <div style={{ flex: 1, width: '100%', background: '#fff', borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <iframe
                 srcDoc={srcDoc}
-                style={{ width: '100%', height: '100%', border: 'none' }}
+                style={{ flex: 1, width: '100%', height: '100%', border: 'none' }}
                 sandbox="allow-scripts allow-same-origin"
                 title="Preview"
             />
