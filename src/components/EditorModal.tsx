@@ -191,7 +191,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                 
                 <div className="modal-editor" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                     {['Markdown', 'HTML', 'SVG', 'Mermaid', 'ECharts'].includes(language) && isPreviewMode ? (
-                        <div className="md-scroll-wrapper" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                        <div className="md-scroll-wrapper" style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                             {language === 'Markdown' ? (
                                 <MarkdownViewer content={codeContent} />
                             ) : (
