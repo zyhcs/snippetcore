@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Snippet, AppSettings } from '../types';
 import { t } from '../i18n';
 
@@ -18,6 +18,11 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
     const favoriteCount = snippets.filter(s => s.is_favorite).length;
     const pinnedLanguages = settings.pinnedLanguages || [];
     const pinnedTags = settings.pinnedTags || [];
+    
+    const [isLangOpen, setIsLangOpen] = useState(true);
+    const [isTagsOpen, setIsTagsOpen] = useState(true);
+    const [langSearch, setLangSearch] = useState('');
+    const [tagSearch, setTagSearch] = useState('');
     
     const { langCounts, tagCounts, tags } = useMemo(() => {
         const langCounts: Record<string, number> = {};
@@ -70,85 +75,141 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
             </div>
 
             <div className="nav-section">
-                <div className="nav-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {t('languages', locale)}
+                <div 
+                    className="nav-title" 
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => setIsLangOpen(!isLangOpen)}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <i className={isLangOpen ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"}></i>
+                        {t('languages', locale)}
+                    </div>
                     <i 
                         className="ri-settings-4-line" 
                         style={{ cursor: 'pointer', opacity: 0.6 }} 
-                        onClick={() => onOpenSettings('sidebar')}
+                        onClick={(e) => { e.stopPropagation(); onOpenSettings('sidebar'); }}
                         title={t('manage', locale)}
                     ></i>
                 </div>
-                {pinnedLanguages.length === 0 ? (
-                    <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', background: 'rgba(0,0,0,0.1)', borderRadius: '6px' }}>
-                        {t('noPinnedItems', locale)}
-                    </div>
-                ) : (
-                    <div className="tags-cloud">
-                        <button 
-                            className={`lang-tag ${activeTab === 'all' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('all')}
-                            style={{ '--tag-color': '#94a3b8' } as React.CSSProperties}
-                        >
-                            {t('all', locale)} <span className="tag-count">{totalCount}</span>
-                        </button>
-                        {pinnedLanguages.map((tab, idx) => {
-                            const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
-                        const color = colors[idx % colors.length];
-                        const count = langCounts[tab] || 0;
-                        return (
-                            <button 
-                                key={tab}
-                                className={`lang-tag ${activeTab === tab ? 'active' : ''}`}
-                                onClick={() => setActiveTab(tab)}
-                                style={{ '--tag-color': color } as React.CSSProperties}
-                            >
-                                {tab} {count > 0 && <span className="tag-count">{count}</span>}
-                            </button>
-                        );
-                        })}
-                    </div>
+                {isLangOpen && (
+                    <>
+                        <div style={{ padding: '0 8px 8px' }}>
+                            <div className="search-input-wrapper" style={{ background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="ri-search-line" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}></i>
+                                <input 
+                                    type="text" 
+                                    placeholder={locale === 'zh' ? '搜索语言...' : 'Search languages...'}
+                                    value={langSearch}
+                                    onChange={(e) => setLangSearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ border: 'none', background: 'transparent', color: 'var(--text-primary)', outline: 'none', fontSize: '0.8rem', width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        {pinnedLanguages.filter(l => l.toLowerCase().includes(langSearch.toLowerCase())).length === 0 ? (
+                            <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', margin: '0 8px' }}>
+                                {langSearch ? (locale === 'zh' ? '无结果' : 'No results') : t('noPinnedItems', locale)}
+                            </div>
+                        ) : (
+                            <div className="tags-cloud">
+                                {!langSearch && (
+                                    <button 
+                                        className={`lang-tag ${activeTab === 'all' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('all')}
+                                        style={{ '--tag-color': '#94a3b8' } as React.CSSProperties}
+                                    >
+                                        {t('all', locale)} <span className="tag-count">{totalCount}</span>
+                                    </button>
+                                )}
+                                {pinnedLanguages
+                                    .filter(tab => tab.toLowerCase().includes(langSearch.toLowerCase()))
+                                    .map((tab, idx) => {
+                                    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
+                                    const color = colors[idx % colors.length];
+                                    const count = langCounts[tab] || 0;
+                                    return (
+                                        <button 
+                                            key={tab}
+                                            className={`lang-tag ${activeTab === tab ? 'active' : ''}`}
+                                            onClick={() => setActiveTab(tab)}
+                                            style={{ '--tag-color': color } as React.CSSProperties}
+                                        >
+                                            {tab} {count > 0 && <span className="tag-count">{count}</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             <div className="nav-section">
-                <div className="nav-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    {t('tags', locale)}
+                <div 
+                    className="nav-title" 
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => setIsTagsOpen(!isTagsOpen)}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <i className={isTagsOpen ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"}></i>
+                        {t('tags', locale)}
+                    </div>
                     <i 
                         className="ri-settings-4-line" 
                         style={{ cursor: 'pointer', opacity: 0.6 }} 
-                        onClick={() => onOpenSettings('sidebar')}
+                        onClick={(e) => { e.stopPropagation(); onOpenSettings('sidebar'); }}
                         title={t('manage', locale)}
                     ></i>
                 </div>
-                {pinnedTags.length === 0 ? (
-                    <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', background: 'rgba(0,0,0,0.1)', borderRadius: '6px' }}>
-                        {t('noPinnedItems', locale)}
-                    </div>
-                ) : (
-                    <div className="tags-cloud">
-                        {pinnedTags.filter(t => tags.includes(t)).map((tag) => (
-                            <button 
-                                key={tag}
-                                className={`lang-tag ${activeTab === tag ? 'active' : ''}`}
-                                onClick={() => setActiveTab(tag)}
-                                style={{ '--tag-color': '#64748b' } as React.CSSProperties}
-                            >
-                                <i className="ri-hashtag"></i> {tag} <span className="tag-count">{tagCounts[tag]}</span>
-                            </button>
-                        ))}
-                    </div>
+                {isTagsOpen && (
+                    <>
+                        <div style={{ padding: '0 8px 8px' }}>
+                            <div className="search-input-wrapper" style={{ background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="ri-search-line" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}></i>
+                                <input 
+                                    type="text" 
+                                    placeholder={locale === 'zh' ? '搜索标签...' : 'Search tags...'}
+                                    value={tagSearch}
+                                    onChange={(e) => setTagSearch(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ border: 'none', background: 'transparent', color: 'var(--text-primary)', outline: 'none', fontSize: '0.8rem', width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        {pinnedTags.filter(t => tags.includes(t) && t.toLowerCase().includes(tagSearch.toLowerCase())).length === 0 ? (
+                            <div style={{ padding: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', background: 'rgba(0,0,0,0.1)', borderRadius: '6px', margin: '0 8px' }}>
+                                {tagSearch ? (locale === 'zh' ? '无结果' : 'No results') : t('noPinnedItems', locale)}
+                            </div>
+                        ) : (
+                            <div className="tags-cloud">
+                                {pinnedTags
+                                    .filter(t => tags.includes(t) && t.toLowerCase().includes(tagSearch.toLowerCase()))
+                                    .map((tag) => (
+                                    <button 
+                                        key={tag}
+                                        className={`lang-tag ${activeTab === tag ? 'active' : ''}`}
+                                        onClick={() => setActiveTab(tag)}
+                                        style={{ '--tag-color': '#64748b' } as React.CSSProperties}
+                                    >
+                                        <i className="ri-hashtag"></i> {tag} <span className="tag-count">{tagCounts[tag]}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
             <div style={{ flex: 1 }}></div>
 
-            <div className="sidebar-footer" style={{ borderTop: '1px solid var(--border-color)', padding: '16px', display: 'flex', alignItems: 'center' }}>
+            <div className="sidebar-footer" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'flex-start' }}>
                 <button 
                     className="btn-icon" 
                     onClick={() => onOpenSettings()} 
                     title={t('settings', locale)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', padding: '8px 16px', borderRadius: '12px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--theme-color)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
                 >
                     <i className="ri-settings-3-line"></i>
                     <span>{t('settings', locale)}</span>
