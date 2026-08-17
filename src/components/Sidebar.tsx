@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
                 </a>
             </div>
 
-            <div className="nav-section">
+            <div className="nav-section scrollable">
                 <div 
                     className="nav-title" 
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
@@ -144,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
                 )}
             </div>
 
-            <div className="nav-section">
+            <div className="nav-section scrollable">
                 <div 
                     className="nav-title" 
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
