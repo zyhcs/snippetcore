@@ -12,6 +12,15 @@ interface SidebarProps {
     settings: AppSettings;
 }
 
+const getTagColor = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef', '#f43f5e'];
+    return colors[Math.abs(hash) % colors.length];
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, activeTab, setActiveTab, onOpenSettings, settings }) => {
     const locale = settings.locale;
     const totalCount = snippets.length;
@@ -187,9 +196,9 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
                                     .map((tag) => (
                                     <button 
                                         key={tag}
-                                        className={`lang-tag ${activeTab === tag ? 'active' : ''}`}
+                                        className={`hash-tag ${activeTab === tag ? 'active' : ''}`}
                                         onClick={() => setActiveTab(tag)}
-                                        style={{ '--tag-color': '#64748b' } as React.CSSProperties}
+                                        style={{ '--tag-color': getTagColor(tag) } as React.CSSProperties}
                                     >
                                         <i className="ri-hashtag"></i> {tag} <span className="tag-count">{tagCounts[tag]}</span>
                                     </button>

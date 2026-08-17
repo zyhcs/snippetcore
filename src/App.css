@@ -740,3 +740,54 @@ kbd {
     border-bottom: 2px solid var(--theme-color);
 }
 @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } @keyframes toastFadeOut { to { opacity: 0; transform: translateY(10px); } }
+
+
+/* Sidebar Hash Tags (for actual tags, not languages) */
+.hash-tag {
+    background-color: color-mix(in srgb, var(--tag-color) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tag-color) 20%, transparent);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-sans);
+}
+
+.hash-tag i {
+    color: var(--tag-color);
+    opacity: 0.8;
+    font-size: 0.8rem;
+}
+
+.hash-tag:hover {
+    background-color: color-mix(in srgb, var(--tag-color) 15%, transparent);
+    border-color: color-mix(in srgb, var(--tag-color) 40%, transparent);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--tag-color) 15%, transparent);
+}
+
+.hash-tag.active {
+    background-color: color-mix(in srgb, var(--tag-color) 20%, transparent);
+    border-color: var(--tag-color);
+    color: var(--tag-color);
+    font-weight: 500;
+}
+
+.hash-tag .tag-count {
+    background-color: color-mix(in srgb, var(--tag-color) 10%, transparent);
+    color: var(--tag-color);
+    border: 1px solid color-mix(in srgb, var(--tag-color) 20%, transparent);
+}
+
+.hash-tag:hover .tag-count,
+.hash-tag.active .tag-count {
+    background-color: var(--tag-color);
+    color: #fff;
+    border-color: transparent;
+}
