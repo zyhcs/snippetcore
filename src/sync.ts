@@ -258,13 +258,12 @@ export async function pullFromRepo(token: string, repoName: string): Promise<str
             // Reconstruct Snippet object from filename and content
             // filename format: snippets/Title-id.ext
             const filename = node.path.split('/').pop();
-            const lastDash = filename.lastIndexOf('-');
             const lastDot = filename.lastIndexOf('.');
             
-            if (lastDash === -1 || lastDot === -1) continue; // Invalid format
+            if (lastDot < 37) continue; // Invalid format, cannot contain 36 char UUID
             
-            const title = filename.substring(0, lastDash);
-            const id = filename.substring(lastDash + 1, lastDot);
+            const id = filename.substring(lastDot - 36, lastDot);
+            const title = filename.substring(0, lastDot - 37); // -37 to remove the '-'
             const ext = filename.substring(lastDot + 1);
             
             // Reverse mapping for language (best effort, or fallback to text)

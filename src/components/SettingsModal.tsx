@@ -11,6 +11,7 @@ interface SettingsModalProps {
     initialTab?: 'appearance' | 'languages' | 'sidebar' | 'sync';
     onClose: () => void;
     onSave: (settings: AppSettings) => void;
+    onSnippetsChanged?: () => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initialTab = 'appearance', onClose, onSave }) => {
@@ -536,6 +537,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         <div>
                                             <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>{t('syncAutoInterval', locale) || 'Auto Sync Interval'}</label>
                                             <select 
+                                                className="custom-select"
                                                 value={localSettings.syncAutoInterval || 0}
                                                 onChange={e => setLocalSettings({...localSettings, syncAutoInterval: parseInt(e.target.value)})}
                                                 style={{ width: '100%', padding: '10px 12px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none' }}
@@ -549,6 +551,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         <div>
                                             <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>{t('syncPullStrategy', locale) || 'Pull Strategy'}</label>
                                             <select 
+                                                className="custom-select"
                                                 value={localSettings.syncPullStrategy || 'all'}
                                                 onChange={e => setLocalSettings({...localSettings, syncPullStrategy: e.target.value as any})}
                                                 style={{ width: '100%', padding: '10px 12px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-primary)', outline: 'none' }}

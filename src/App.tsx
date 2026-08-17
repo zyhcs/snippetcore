@@ -383,6 +383,7 @@ function App() {
             snippets={snippets}
             initialTab={settingsTab}
             onClose={() => setIsSettingsOpen(false)} 
+            onSnippetsChanged={loadSnippets}
             onSave={(newSettings) => {
                 setAppSettings(newSettings);
                 setIsSettingsOpen(false);
