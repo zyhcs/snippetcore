@@ -7,6 +7,9 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
     "opener:default",
     "sql:default",
     "sql:allow-execute",
