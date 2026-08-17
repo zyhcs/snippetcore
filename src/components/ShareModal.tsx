@@ -90,13 +90,13 @@ const ShareModal: React.FC<ShareModalProps> = ({ snippet, settings, onClose }) =
                     </button>
                 </div>
 
-                <div style={{ overflowX: 'auto', padding: '20px 0', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ overflow: 'auto', padding: '20px 0', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                     <div 
                         ref={previewRef} 
                         style={{ 
                             padding: '40px', 
                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                            display: 'inline-block',
+                            display: 'flex', flexDirection: 'column', width: '100%',
                             minWidth: '600px',
                             maxWidth: '100%',
                             boxSizing: 'border-box'
