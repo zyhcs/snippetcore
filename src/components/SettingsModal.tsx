@@ -31,16 +31,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
     }, []);
 
     const handleSave = () => {
-        if (localSettings.syncProvider === 'github') {
-            if (!localSettings.githubToken?.trim()) {
-                showToast(locale === 'zh' ? '请填写 GitHub Token' : 'Please provide GitHub Token', 'error');
-                return;
-            }
-            if (!localSettings.githubRepoName?.trim() || !localSettings.githubRepoName.includes('/')) {
-                showToast(locale === 'zh' ? '请填写正确的仓库格式，如 username/repo' : 'Invalid repo format. Use username/repo', 'error');
-                return;
-            }
-        }
+        // Validation removed from global save. 
+        // We only validate when explicitly testing/syncing in the Sync tab.
         onSave(localSettings);
     };
 
@@ -134,6 +126,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         {PRESET_THEMES.map(theme => (
                                             <div 
                                                 key={theme.id}
+                                                title={theme.id === 'classic' ? (locale === 'zh' ? '支持自定义高亮色覆盖的经典主题' : 'Classic theme with customizable highlight color') : (locale === 'zh' ? '预设深色主题' : 'Preset dark theme')}
                                                 onClick={() => setLocalSettings({...localSettings, themePreset: theme.id})}
                                                 style={{
                                                     padding: '12px',
@@ -541,8 +534,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                     <label style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '8px', display: 'block' }}>GitHub Personal Access Token (PAT)</label>
                                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>
                                         {locale === 'zh' 
-                                            ? <span>为了将数据同步至私有仓库，您需要提供一个拥有 <strong>repo</strong> 权限的 GitHub Token。<a href="https://github.com/settings/tokens/new" target="_blank" style={{ color: 'var(--theme-color)', textDecoration: 'none', fontWeight: 500 }}>去创建 Token</a></span>
-                                            : <span>To sync data to a private repository, you need a GitHub Token with <strong>repo</strong> scope. <a href="https://github.com/settings/tokens/new" target="_blank" style={{ color: 'var(--theme-color)', textDecoration: 'none', fontWeight: 500 }}>Create Token</a></span>}
+                                            ? <span>为了将数据同步至私有仓库，您需要提供一个拥有 <strong>repo</strong> 权限的 GitHub Token。<a href="#" onClick={async (e) => { e.preventDefault(); const { openUrl } = await import('@tauri-apps/plugin-opener'); await openUrl('https://github.com/settings/tokens/new?scopes=repo&description=SnippetCore+Sync'); }} style={{ color: 'var(--theme-color)', textDecoration: 'none', fontWeight: 500, cursor: 'pointer' }}>去创建 Token</a></span>
+                                            : <span>To sync data to a private repository, you need a GitHub Token with <strong>repo</strong> scope. <a href="#" onClick={async (e) => { e.preventDefault(); const { openUrl } = await import('@tauri-apps/plugin-opener'); await openUrl('https://github.com/settings/tokens/new?scopes=repo&description=SnippetCore+Sync'); }} style={{ color: 'var(--theme-color)', textDecoration: 'none', fontWeight: 500, cursor: 'pointer' }}>Create Token</a></span>}
                                     </div>
                                     <div style={{ position: 'relative', marginBottom: '24px' }}>
                                         <input 

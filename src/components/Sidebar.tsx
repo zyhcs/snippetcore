@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
                 <div className="nav-title">{t('library', locale)}</div>
                 <a 
                     href="#"
-                    className={`nav-item ${activeTab === 'all' && filterType === 'all' ? 'active' : ''}`} 
+                    className={`nav-item ${activeTab === 'all' && filterType === 'all' ? 'active' : ''}`} title={locale === 'zh' ? '所有代码片段' : 'All snippets'} 
                     onClick={(e) => { e.preventDefault(); setActiveTab('all'); setFilterType('all'); }}
                 >
                     <i className="ri-layout-grid-line"></i>
@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
                 </a>
                 <a 
                     href="#"
-                    className={`nav-item ${filterType === 'favorites' ? 'active' : ''}`}
+                    className={`nav-item ${filterType === 'favorites' ? 'active' : ''}`} title={locale === 'zh' ? '收藏的代码片段' : 'Favorite snippets'}
                     onClick={(e) => { e.preventDefault(); setFilterType('favorites'); }}
                 >
                     <i className="ri-star-line"></i>
