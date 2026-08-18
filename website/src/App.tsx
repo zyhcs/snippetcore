@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Cloud, Layout, Zap, Image as ImageIcon, Terminal, Star, Globe, CheckCircle2, Copy, Code2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { dict, type Lang } from './dict';
@@ -14,7 +14,20 @@ function Github(props: any) {
 
 function App() {
   const [lang, setLang] = useState<Lang>('zh');
+  const [os, setOs] = useState<'mac' | 'win' | 'linux' | 'unknown'>('unknown');
+  
+  useEffect(() => {
+    const ua = window.navigator.userAgent.toLowerCase();
+    if (ua.includes('mac')) setOs('mac');
+    else if (ua.includes('win')) setOs('win');
+    else if (ua.includes('linux')) setOs('linux');
+  }, []);
+
   const d = dict[lang];
+  let downloadText = d.hero.downloadDefault;
+  if (os === 'mac') downloadText = d.hero.downloadMac;
+  if (os === 'win') downloadText = d.hero.downloadWin;
+  if (os === 'linux') downloadText = d.hero.downloadLinux;
 
   // Reveal Animation Variants
   const fadeUp = {
@@ -116,7 +129,7 @@ function App() {
           >
             <a href="https://github.com/zyhcs/snippetcore/releases/latest" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] hover:-translate-y-1">
               <Download className="w-5 h-5" />
-              {d.hero.download}
+              {downloadText}
             </a>
             <a href="https://github.com/zyhcs/snippetcore" target="_blank" rel="noreferrer" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-surface hover:bg-surface/80 border border-white/10 text-white font-semibold flex items-center justify-center gap-2 transition-all hover:-translate-y-1">
               <Github className="w-5 h-5" />
@@ -335,7 +348,7 @@ function App() {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-2xl shadow-lg mb-6">S</div>
           <h2 className="text-3xl font-bold mb-6 tracking-tight">Ready to boost your productivity?</h2>
           <a href="https://github.com/zyhcs/snippetcore/releases/latest" className="px-8 py-4 rounded-xl bg-white text-background hover:bg-gray-200 font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-xl mb-16">
-            <Download className="w-5 h-5" /> {d.hero.download}
+            <Download className="w-5 h-5" /> {downloadText}
           </a>
           
           <div className="w-full h-px bg-white/10 mb-8"></div>

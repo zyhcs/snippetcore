@@ -14,9 +14,12 @@ export const dict = {
       highlight: 'Code Snippet',
       title2: ' Manager.',
       subtitle: 'Fast, secure, and beautiful. SnippetCore helps you organize your code fragments locally with seamless GitHub synchronization and stunning image exports.',
-      download: 'Download for macOS',
+      downloadMac: 'Download for macOS',
+      downloadWin: 'Download for Windows',
+      downloadLinux: 'Download for Linux',
+      downloadDefault: 'Download App',
       source: 'View Source',
-      platforms: 'Also available for Windows & Linux.'
+      platforms: 'Available for macOS, Windows & Linux.'
     },
     features: {
       title: 'Everything you need, nothing you don\'t.',
@@ -66,9 +69,12 @@ export const dict = {
       highlight: '代码片段',
       title2: '管理利器',
       subtitle: '极速、安全且优雅。SnippetCore 帮助您在本地高效管理代码资产，并支持无缝 GitHub 同步与绝美的代码图片导出。',
-      download: '下载 macOS 版',
+      downloadMac: '下载 macOS 版',
+      downloadWin: '下载 Windows 版',
+      downloadLinux: '下载 Linux 版',
+      downloadDefault: '立即下载',
       source: '查看源码',
-      platforms: '同时支持 Windows 与 Linux 平台'
+      platforms: '提供 macOS、Windows 与 Linux 原生版本'
     },
     features: {
       title: '满足你所需的一切，摒弃繁杂。',
