@@ -13,6 +13,7 @@ import SettingsModal from './components/SettingsModal';
 import { ToastContainer } from './components/Toast';
 import ConfirmModal from './components/ConfirmModal';
 import ShareModal from './components/ShareModal';
+import ContextMenu from './components/ContextMenu';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { AppSettings } from './types';
 import { t } from './i18n';
@@ -56,6 +57,7 @@ function App() {
   const [appSettings, setAppSettings] = useState<AppSettings>(defaultSettings);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'appearance' | 'languages' | 'sidebar'>('appearance');
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'global' | 'snippet', snippet?: Snippet } | null>(null);
 
   const [confirmDialog, setConfirmDialog] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
 
@@ -343,7 +345,10 @@ function App() {
   });
 
   return (
-    <div className="app-container">
+    <div 
+      className="app-container"
+      onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, type: 'global' }); }}
+    >
       <Sidebar 
         snippets={snippets}
         filterType={filterType}
@@ -369,8 +374,12 @@ function App() {
           onDeleteSnippet={handleDeleteSnippet}
           onToggleFavorite={handleToggleFavorite}
           onCopySnippet={handleCopySnippet}
-          onShareSnippet={handleShareSnippet}
           locale={appSettings.locale}
+          onContextMenu={(e, snippet) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setContextMenu({ x: e.clientX, y: e.clientY, type: 'snippet', snippet });
+          }}
         />
       </main>
 
@@ -416,6 +425,32 @@ function App() {
             snippet={sharingSnippet}
             settings={appSettings}
             onClose={() => setSharingSnippet(null)}
+          />
+      )}
+
+      {contextMenu && (
+          <ContextMenu 
+            x={contextMenu.x}
+            y={contextMenu.y}
+            type={contextMenu.type}
+            snippet={contextMenu.snippet}
+            locale={appSettings.locale}
+            onClose={() => setContextMenu(null)}
+            onAction={(action, snippet) => {
+                setContextMenu(null);
+                if (action === 'settings') {
+                    setSettingsTab('appearance');
+                    setIsSettingsOpen(true);
+                } else if (action === 'share' && snippet) {
+                    handleShareSnippet(snippet);
+                } else if (action === 'delete' && snippet) {
+                    handleDeleteSnippet(snippet.id);
+                } else if (action === 'edit' && snippet) {
+                    handleEditSnippet(snippet);
+                } else if (action === 'copy' && snippet) {
+                    handleCopySnippet(snippet.code_content);
+                }
+            }}
           />
       )}
     </div>

@@ -9,11 +9,11 @@ interface SnippetGridProps {
     onDeleteSnippet: (id: string) => void;
     onToggleFavorite: (snippet: Snippet) => void;
     onCopySnippet: (code: string) => void;
-    onShareSnippet?: (snippet: Snippet) => void;
+    onContextMenu?: (e: React.MouseEvent, snippet: Snippet) => void;
     locale?: Locale;
 }
 
-const SnippetGrid: React.FC<SnippetGridProps> = ({ snippets, onEditSnippet, onDeleteSnippet, onToggleFavorite, onCopySnippet, onShareSnippet, locale = 'zh' }) => {
+const SnippetGrid: React.FC<SnippetGridProps> = ({ snippets, onEditSnippet, onDeleteSnippet, onToggleFavorite, onCopySnippet, onContextMenu, locale = 'zh' }) => {
     return (
         <div className="snippet-grid">
             {snippets.length === 0 ? (
@@ -30,7 +30,7 @@ const SnippetGrid: React.FC<SnippetGridProps> = ({ snippets, onEditSnippet, onDe
                         onDelete={(e) => { e.stopPropagation(); onDeleteSnippet(snippet.id); }}
                         onToggleFavorite={(e) => { e.stopPropagation(); onToggleFavorite(snippet); }}
                         onCopy={(e) => { e.stopPropagation(); onCopySnippet(snippet.code_content); }}
-                        onShare={onShareSnippet ? (e) => { e.stopPropagation(); onShareSnippet(snippet); } : undefined}
+                        onContextMenu={onContextMenu}
                     />
                 ))
             )}

@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, setSearchQuery, onNewSnipp
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <div className="search-shortcut">按下 <kbd>⌘ K</kbd> 唤起</div>
+                    
                     <button className="btn-primary" onClick={onNewSnippet}>
                         <i className="ri-add-line"></i> {t('newSnippet', locale)}
                     </button>

@@ -11,7 +11,7 @@ interface SnippetCardProps {
     onDelete: (e: React.MouseEvent) => void;
     onToggleFavorite: (e: React.MouseEvent) => void;
     onCopy: (e: React.MouseEvent) => void;
-    onShare?: (e: React.MouseEvent) => void;
+    onContextMenu?: (e: React.MouseEvent, snippet: Snippet) => void;
     locale?: Locale;
 }
 
@@ -38,7 +38,7 @@ export const getTagColor = (str: string) => {
     return colors[Math.abs(hash) % colors.length];
 };
 
-const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, onToggleFavorite, onCopy, onShare, locale = 'zh' }) => {
+const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, onToggleFavorite, onCopy, onContextMenu, locale = 'zh' }) => {
     const [langExt, setLangExt] = useState<Extension[]>([]);
     useEffect(() => {
         let isMounted = true;
@@ -60,7 +60,11 @@ const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, o
     }
 
     return (
-        <div className="snippet-card" onClick={onClick}>
+        <div 
+            className="snippet-card" 
+            onClick={onClick}
+            onContextMenu={onContextMenu ? (e) => onContextMenu(e, snippet) : undefined}
+        >
             <div className="card-header">
                 <div className="card-title">
                     {getLanguageIcon(snippet.language)}
@@ -74,11 +78,6 @@ const SnippetCard: React.FC<SnippetCardProps> = ({ snippet, onClick, onDelete, o
                     <button className="btn-icon" onClick={onCopy} title={t('copyCode', locale)}>
                         <i className="ri-file-copy-line"></i>
                     </button>
-                    {onShare && (
-                        <button className="btn-icon" onClick={onShare} title={t('share', locale)}>
-                            <i className="ri-share-forward-line"></i>
-                        </button>
-                    )}
                     <button className="btn-icon" onClick={onDelete} title={t('deleteSnippet', locale)}>
                         <i className="ri-delete-bin-line" style={{ color: '#ef4444' }}></i>
                     </button>

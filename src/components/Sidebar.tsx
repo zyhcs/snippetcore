@@ -211,19 +211,6 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, filterType, setFilterType, 
 
             <div style={{ flex: 1 }}></div>
 
-            <div className="sidebar-footer" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'flex-start' }}>
-                <button 
-                    className="btn-icon" 
-                    onClick={() => onOpenSettings()} 
-                    title={t('settings', locale)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', padding: '8px 16px', borderRadius: '12px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--theme-color)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
-                >
-                    <i className="ri-settings-3-line"></i>
-                    <span>{t('settings', locale)}</span>
-                </button>
-            </div>
         </aside>
     );
 };
