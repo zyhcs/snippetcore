@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, setSearchQuery, onNewSnipp
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     
-                    <button className="btn-primary" onClick={onNewSnippet}>
+                    <button className="btn-primary" onClick={onNewSnippet} title={locale === 'zh' ? '创建新的代码片段' : 'Create new snippet'}>
                         <i className="ri-add-line"></i> {t('newSnippet', locale)}
                     </button>
                 </div>

@@ -31,6 +31,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
     }, []);
 
     const handleSave = () => {
+        if (localSettings.syncProvider === 'github') {
+            if (!localSettings.githubToken?.trim()) {
+                showToast(locale === 'zh' ? '请填写 GitHub Token' : 'Please provide GitHub Token', 'error');
+                return;
+            }
+            if (!localSettings.githubRepoName?.trim() || !localSettings.githubRepoName.includes('/')) {
+                showToast(locale === 'zh' ? '请填写正确的仓库格式，如 username/repo' : 'Invalid repo format. Use username/repo', 'error');
+                return;
+            }
+        }
         onSave(localSettings);
     };
 
@@ -615,8 +625,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         <button 
                                             className="btn-primary" 
                                             style={{ flex: 1 }}
-                                            disabled={!localSettings.githubToken || isSyncing}
+                                            disabled={isSyncing}
                                             onClick={async () => {
+                                                if (!localSettings.githubToken?.trim()) {
+                                                    showToast(locale === 'zh' ? '请填写 GitHub Token' : 'Please provide GitHub Token', 'error');
+                                                    return;
+                                                }
                                                 setIsSyncing(true);
                                                 setSyncStatus({ message: locale === 'zh' ? '正在连接 GitHub...' : 'Connecting to GitHub...', type: 'info' });
                                                 try {
@@ -676,8 +690,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                         <button 
                                             className="btn-secondary" 
                                             style={{ flex: 1, backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
-                                            disabled={!localSettings.githubToken || isSyncing}
+                                            disabled={isSyncing}
                                             onClick={async () => {
+                                                if (!localSettings.githubToken?.trim()) {
+                                                    showToast(locale === 'zh' ? '请填写 GitHub Token' : 'Please provide GitHub Token', 'error');
+                                                    return;
+                                                }
                                                 setIsSyncing(true);
                                                 setSyncStatus({ message: locale === 'zh' ? '正在强制拉取云端数据...' : 'Force pulling remote data...', type: 'info' });
                                                 try {

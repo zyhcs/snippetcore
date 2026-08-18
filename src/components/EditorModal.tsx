@@ -8,6 +8,7 @@ import { LANGUAGE_REGISTRY } from '../utils/languages';
 import MarkdownViewer from './MarkdownViewer';
 import HtmlViewer from './HtmlViewer';
 import { t } from '../i18n';
+import { showToast } from '../utils/toast';
 
 interface EditorModalProps {
     snippet: Snippet | null;
@@ -77,8 +78,17 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
     }, [snippet]);
 
     const handleSave = () => {
+        if (!codeContent.trim()) {
+            showToast(locale === 'zh' ? '代码内容不能为空' : 'Code content cannot be empty', 'error');
+            return;
+        }
+        if (!title.trim()) {
+            showToast(locale === 'zh' ? '未命名片段已自动保存' : 'Saved as Untitled Snippet', 'info');
+        } else {
+            showToast(locale === 'zh' ? '片段保存成功' : 'Snippet saved successfully', 'success');
+        }
         onSave({
-            title: title || 'Untitled Snippet',
+            title: title.trim() || 'Untitled Snippet',
             code_content: codeContent,
             language,
             tags,
@@ -226,6 +236,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                                 value={newTag}
                                 onChange={e => setNewTag(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addTag()}
+                                title={locale === 'zh' ? '输入标签名称后按回车添加' : 'Press Enter to add tag'}
                                 style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', outline: 'none', padding: '6px 0', fontSize: '0.85rem', width: '100px' }}
                             />
                             {newTag.trim() && (
@@ -234,7 +245,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                         </div>
                     </div>
                     <div className="modal-actions" style={{ display: 'flex', gap: '12px' }}>
-                        <button className="btn-secondary" onClick={onClose}>{t('cancel', locale)}</button>
+                        <button className="btn-secondary" onClick={onClose} title={locale === 'zh' ? '放弃修改并关闭' : 'Discard changes and close'}>{t('cancel', locale)}</button>
                         <button className="btn-primary" onClick={handleSave}>{t('saveSettings', locale).replace('Settings', 'Snippet').replace('设置', '片段')}</button>
                     </div>
                 </div>
