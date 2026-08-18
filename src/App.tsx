@@ -165,8 +165,19 @@ function App() {
               
               await unregisterAll();
               
-              if (appSettings.enableGlobalShortcut && appSettings.globalShortcutKey) {
-                  await register(appSettings.globalShortcutKey, async (event) => {
+              const isMac = navigator.userAgent.includes('Mac');
+              const isWin = navigator.userAgent.includes('Win');
+              
+              const currentEnableGlobalShortcut = isMac ? (appSettings.enableGlobalShortcut_mac ?? appSettings.enableGlobalShortcut) : 
+                                                (isWin ? (appSettings.enableGlobalShortcut_win ?? appSettings.enableGlobalShortcut) : 
+                                                         (appSettings.enableGlobalShortcut_linux ?? appSettings.enableGlobalShortcut));
+              
+              const currentGlobalShortcutKey = isMac ? (appSettings.globalShortcutKey_mac || appSettings.globalShortcutKey) : 
+                                             (isWin ? (appSettings.globalShortcutKey_win || appSettings.globalShortcutKey) : 
+                                                      (appSettings.globalShortcutKey_linux || appSettings.globalShortcutKey));
+              
+              if (currentEnableGlobalShortcut && currentGlobalShortcutKey) {
+                  await register(currentGlobalShortcutKey, async (event) => {
                       console.log("Global shortcut pressed!", event);
                       if (event.state === 'Pressed') {
                           const appWindow = getCurrentWindow();
@@ -183,7 +194,7 @@ function App() {
                           }
                       }
                   });
-                  console.log("Global shortcut registered successfully:", appSettings.globalShortcutKey);
+                  console.log("Global shortcut registered successfully:", currentGlobalShortcutKey);
               }
           } catch (err: any) {
               console.error("Failed to setup global shortcut", err);
@@ -200,7 +211,7 @@ function App() {
               }).catch(console.error);
           }
       };
-  }, [appSettings.enableGlobalShortcut, appSettings.globalShortcutKey]);
+  }, [appSettings]);
 
   const loadSnippets = async () => {
     try {

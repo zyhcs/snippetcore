@@ -43,6 +43,12 @@ export interface AppSettings {
     syncPullStrategy: 'all' | 'snippets_only' | 'settings_only';
     enableGlobalShortcut: boolean;
     globalShortcutKey: string;
+    enableGlobalShortcut_mac?: boolean;
+    globalShortcutKey_mac?: string;
+    enableGlobalShortcut_win?: boolean;
+    globalShortcutKey_win?: string;
+    enableGlobalShortcut_linux?: boolean;
+    globalShortcutKey_linux?: string;
     enableClipboardSniffer: boolean;
 }
 
@@ -64,8 +70,14 @@ export const defaultSettings: AppSettings = {
     syncOnStart: false,
     syncOnSave: false,
     syncPullStrategy: 'all',
-    enableGlobalShortcut: true,
-    globalShortcutKey: 'CommandOrControl+Shift+Space',
+    enableGlobalShortcut: false,
+    globalShortcutKey: '',
+    enableGlobalShortcut_mac: false,
+    globalShortcutKey_mac: '',
+    enableGlobalShortcut_win: false,
+    globalShortcutKey_win: '',
+    enableGlobalShortcut_linux: false,
+    globalShortcutKey_linux: '',
     enableClipboardSniffer: false
 };
 

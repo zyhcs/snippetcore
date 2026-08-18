@@ -196,45 +196,57 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                 </div>
                                 <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '10px 0' }} />
                                 <div>
-                                    <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={localSettings.enableGlobalShortcut ?? true}
-                                            onChange={e => setLocalSettings({...localSettings, enableGlobalShortcut: e.target.checked})}
-                                        />
-                                        {t('enableGlobalShortcut', locale)}
-                                    </label>
-                                    {(localSettings.enableGlobalShortcut ?? true) && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px', paddingLeft: '24px' }}>
-                                            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('globalShortcutKey', locale)}</label>
-                                            <input 
-                                                type="text" 
-                                                value={localSettings.globalShortcutKey || 'CommandOrControl+Shift+Space'}
-                                                onKeyDown={e => {
-                                                    e.preventDefault();
-                                                    const keys = [];
-                                                    if (e.metaKey || e.ctrlKey) keys.push('CommandOrControl');
-                                                    if (e.altKey) keys.push('Alt');
-                                                    if (e.shiftKey) keys.push('Shift');
-                                                    
-                                                    const key = e.key;
-                                                    // Ignore if it's just a modifier key
-                                                    if (!['Meta', 'Control', 'Alt', 'Shift'].includes(key)) {
-                                                        let finalKey = key.toUpperCase();
-                                                        if (finalKey === ' ') finalKey = 'Space';
-                                                        keys.push(finalKey);
-                                                        setLocalSettings({...localSettings, globalShortcutKey: keys.join('+')});
-                                                    } else if (keys.length > 0) {
-                                                        // Show intermediate state while holding modifiers
-                                                        setLocalSettings({...localSettings, globalShortcutKey: keys.join('+') + '+'});
-                                                    }
-                                                }}
-                                                readOnly
-                                                style={{ padding: '6px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--theme-color)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none', flex: 1, fontFamily: 'var(--font-mono)', fontSize: '0.85rem', cursor: 'pointer' }}
-                                                placeholder={t('globalShortcutKey', locale)}
-                                            />
-                                        </div>
-                                    )}
+                                    {(() => {
+                                        const isMac = navigator.userAgent.includes('Mac');
+                                        const isWin = navigator.userAgent.includes('Win');
+                                        const enableKey = isMac ? 'enableGlobalShortcut_mac' : (isWin ? 'enableGlobalShortcut_win' : 'enableGlobalShortcut_linux');
+                                        const shortcutKey = isMac ? 'globalShortcutKey_mac' : (isWin ? 'globalShortcutKey_win' : 'globalShortcutKey_linux');
+                                        
+                                        const isEnabled = localSettings[enableKey] ?? localSettings.enableGlobalShortcut ?? false;
+                                        const currentKey = localSettings[shortcutKey] ?? localSettings.globalShortcutKey ?? '';
+                                        
+                                        return (
+                                            <>
+                                                <label style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={isEnabled}
+                                                        onChange={e => setLocalSettings({...localSettings, [enableKey]: e.target.checked})}
+                                                    />
+                                                    {t('enableGlobalShortcut', locale)}
+                                                </label>
+                                                {isEnabled && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px', paddingLeft: '24px' }}>
+                                                        <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t('globalShortcutKey', locale)}</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={currentKey}
+                                                            onKeyDown={e => {
+                                                                e.preventDefault();
+                                                                const keys = [];
+                                                                if (e.metaKey || e.ctrlKey) keys.push('CommandOrControl');
+                                                                if (e.altKey) keys.push('Alt');
+                                                                if (e.shiftKey) keys.push('Shift');
+                                                                
+                                                                const key = e.key;
+                                                                if (!['Meta', 'Control', 'Alt', 'Shift'].includes(key)) {
+                                                                    let finalKey = key.toUpperCase();
+                                                                    if (finalKey === ' ') finalKey = 'Space';
+                                                                    keys.push(finalKey);
+                                                                    setLocalSettings({...localSettings, [shortcutKey]: keys.join('+')});
+                                                                } else if (keys.length > 0) {
+                                                                    setLocalSettings({...localSettings, [shortcutKey]: keys.join('+') + '+'});
+                                                                }
+                                                            }}
+                                                            readOnly
+                                                            style={{ padding: '6px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--theme-color)', borderRadius: '4px', color: 'var(--text-primary)', outline: 'none', flex: 1, fontFamily: 'var(--font-mono)', fontSize: '0.85rem', cursor: 'pointer' }}
+                                                            placeholder={t('globalShortcutKey', locale)}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}
