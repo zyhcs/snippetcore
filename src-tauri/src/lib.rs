@@ -32,6 +32,20 @@ pub fn run() {
                     value TEXT
                 );",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "create_snippet_history_table",
+            sql: "CREATE TABLE IF NOT EXISTS snippet_history (
+                    id TEXT PRIMARY KEY,
+                    snippet_id TEXT,
+                    title TEXT,
+                    code_content TEXT,
+                    language TEXT,
+                    tags TEXT,
+                    updated_at DATETIME
+                );",
+            kind: MigrationKind::Up,
         }
     ];
 

@@ -7,6 +7,7 @@ import { LANGUAGE_REGISTRY } from '../utils/languages';
 
 import MarkdownViewer from './MarkdownViewer';
 import HtmlViewer from './HtmlViewer';
+import HistoryModal from './HistoryModal';
 import { urlExtension } from '../utils/urlExtension';
 import { t } from '../i18n';
 import { showToast } from '../utils/toast';
@@ -32,6 +33,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
     const [isRunning, setIsRunning] = useState(false);
     const [runOutput, setRunOutput] = useState('');
     const [showTerminal, setShowTerminal] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
     const [languageExtension, setLanguageExtension] = useState<Extension[]>([]);
 
     useEffect(() => {
@@ -181,6 +183,23 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                         }}
                     />
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexShrink: 0 }}>
+                        {snippet?.id && (
+                            <button 
+                                onClick={() => setShowHistory(true)}
+                                style={{
+                                    padding: '6px 10px',
+                                    background: 'transparent',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                <i className="ri-history-line"></i> {locale === 'zh' ? '历史' : 'History'}
+                            </button>
+                        )}
                         <select 
                             className="custom-select" 
                             value={language}
@@ -370,6 +389,17 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                     </div>
                 </div>
             </div>
+            {showHistory && snippet && (
+                <HistoryModal 
+                    snippetId={snippet.id}
+                    locale={locale}
+                    onClose={() => setShowHistory(false)}
+                    onRestore={() => {
+                        showToast(locale === 'zh' ? '版本已恢复，请刷新列表' : 'Version restored, please refresh', 'success');
+                        onClose();
+                    }}
+                />
+            )}
         </div>
     );
 };

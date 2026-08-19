@@ -34,6 +34,25 @@ export async function setInternalSetting(key: string, value: string): Promise<vo
     }
 }
 
+export async function getSnippetHistory(snippetId: string): Promise<any[]> {
+    const db = await getDb();
+    const result: any[] = await db.select('SELECT * FROM snippet_history WHERE snippet_id = $1 ORDER BY updated_at DESC', [snippetId]);
+    return result;
+}
+
+export async function restoreSnippetHistory(historyId: string): Promise<void> {
+    const db = await getDb();
+    const historyData: any[] = await db.select('SELECT * FROM snippet_history WHERE id = $1', [historyId]);
+    if (historyData && historyData.length > 0) {
+        const history = historyData[0];
+        const now = new Date().toISOString();
+        await db.execute(
+            'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, updated_at = $5 WHERE id = $6',
+            [history.title, history.code_content, history.language, history.tags, now, history.snippet_id]
+        );
+    }
+}
+
 export async function getSnippets(): Promise<Snippet[]> {
     const db = await getDb();
     return await db.select<Snippet[]>('SELECT * FROM snippets ORDER BY updated_at DESC');
@@ -63,6 +82,29 @@ export async function updateSnippet(id: string, data: SnippetFormData): Promise<
     const db = await getDb();
     const now = new Date().toISOString();
     const tagsJson = JSON.stringify(data.tags);
+    
+    // Save history before updating
+    try {
+        const oldData: any[] = await db.select('SELECT * FROM snippets WHERE id = $1', [id]);
+        if (oldData && oldData.length > 0) {
+            const old = oldData[0];
+            const historyId = crypto.randomUUID();
+            await db.execute(
+                'INSERT INTO snippet_history (id, snippet_id, title, code_content, language, tags, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                [historyId, id, old.title, old.code_content, old.language, old.tags, old.updated_at]
+            );
+            
+            // Delete oldest histories if there are more than 5
+            await db.execute(
+                `DELETE FROM snippet_history WHERE id IN (
+                    SELECT id FROM snippet_history WHERE snippet_id = $1 ORDER BY updated_at DESC LIMIT -1 OFFSET 5
+                )`,
+                [id]
+            );
+        }
+    } catch (e) {
+        console.error("Failed to save history", e);
+    }
     
     await db.execute(
         'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
