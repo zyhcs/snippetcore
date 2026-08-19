@@ -326,13 +326,15 @@ function App() {
                     setIsDragging(true);
                 } else if (event.payload.type === 'drop') {
                     setIsDragging(false);
+                    console.log('DROP PAYLOAD:', event.payload);
                     const paths = event.payload.paths;
                     if (paths && paths.length > 0) {
                         const filePath = paths[0];
                         try {
                             const contentStr = await readTextFile(filePath);
                             const bName = await basename(filePath);
-                            const eName = await extname(filePath);
+                            let eName = '';
+                            try { eName = await extname(filePath); } catch (e) {}
                             
                             let title = bName;
                             if (eName) {
@@ -344,7 +346,7 @@ function App() {
                             const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'yaml': 'YAML', 'svg': 'SVG' };
                             if (langMap[ext]) language = langMap[ext];
 
-                            setEditingSnippet({
+                            setIsModalOpen(true); setEditingSnippet({
                                 id: '',
                                 title: title,
                                 code_content: contentStr,
