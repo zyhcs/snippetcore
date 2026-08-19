@@ -59,6 +59,42 @@
     "core:window:allow-set-size",
     "core:window:allow-set-position",
     "core:window:allow-center",
-    "core:window:allow-set-always-on-top"
+    "core:window:allow-set-always-on-top",
+    "shell:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "run-node",
+          "cmd": "node",
+          "args": true
+        },
+        {
+          "name": "run-python",
+          "cmd": "python",
+          "args": true
+        },
+        {
+          "name": "run-python3",
+          "cmd": "python3",
+          "args": true
+        },
+        {
+          "name": "run-sh",
+          "cmd": "sh",
+          "args": true
+        },
+        {
+          "name": "run-cmd",
+          "cmd": "cmd",
+          "args": true
+        },
+        {
+          "name": "run-bash",
+          "cmd": "bash",
+          "args": true
+        }
+      ]
+    }
   ]
 }

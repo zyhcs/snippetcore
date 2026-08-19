@@ -29,6 +29,9 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
     const [newTag, setNewTag] = useState('');
     const [isFavorite, setIsFavorite] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(false);
+    const [isRunning, setIsRunning] = useState(false);
+    const [runOutput, setRunOutput] = useState('');
+    const [showTerminal, setShowTerminal] = useState(false);
     const [languageExtension, setLanguageExtension] = useState<Extension[]>([]);
 
     useEffect(() => {
@@ -77,6 +80,61 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
             setIsFavorite(false);
         }
     }, [snippet]);
+
+    
+    const supportedRunners: Record<string, { cmd: string, ext: string }> = {
+        'Python': { cmd: navigator.userAgent.includes('Win') ? 'run-python' : 'run-python3', ext: 'py' },
+        'JavaScript': { cmd: 'run-node', ext: 'js' },
+        'Shell': { cmd: 'run-sh', ext: 'sh' },
+        'TypeScript': { cmd: 'run-node', ext: 'js' }, // Note: basic JS execution only unless ts-node is installed, but we map it here just in case.
+    };
+
+    const handleRun = async () => {
+        const runner = supportedRunners[language];
+        if (!runner) return;
+        setIsRunning(true);
+        setShowTerminal(true);
+        setRunOutput('> Running script...\n');
+        try {
+            const { Command } = await import('@tauri-apps/plugin-shell');
+            const { writeTextFile, remove } = await import('@tauri-apps/plugin-fs');
+            const { tempDir, join } = await import('@tauri-apps/api/path');
+            
+            const tDir = await tempDir();
+            const tmpFile = await join(tDir, `snippetcore_run_${Date.now()}.${runner.ext}`);
+            
+            // If typescript, we cannot run it directly with node unless we transpile, 
+            // but for simple things we just save as js.
+            await writeTextFile(tmpFile, codeContent);
+            
+            const command = Command.create(runner.cmd, [tmpFile]);
+            
+            command.on('close', async data => {
+                setIsRunning(false);
+                setRunOutput(prev => prev + `\n[Process exited with code ${data.code}]`);
+                await remove(tmpFile).catch(console.error);
+            });
+            
+            command.on('error', async error => {
+                setRunOutput(prev => prev + `\n[Error: ${error}]`);
+                setIsRunning(false);
+                await remove(tmpFile).catch(console.error);
+            });
+            
+            command.stdout.on('data', line => {
+                setRunOutput(prev => prev + line + '\n');
+            });
+            
+            command.stderr.on('data', line => {
+                setRunOutput(prev => prev + line + '\n');
+            });
+            
+            await command.spawn();
+        } catch (err) {
+            setRunOutput(`Failed to execute: ${err}`);
+            setIsRunning(false);
+        }
+    };
 
     const handleSave = () => {
         if (!codeContent.trim()) {
@@ -133,6 +191,27 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                                 <option key={lang} value={lang}>{lang}</option>
                             ))}
                         </select>
+                        
+                        {supportedRunners[language] && (
+                            <button 
+                                onClick={handleRun}
+                                disabled={isRunning}
+                                style={{
+                                    padding: '6px 12px',
+                                    background: isRunning ? 'var(--bg-secondary)' : '#10b981',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: isRunning ? 'wait' : 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '6px',
+                                    fontSize: '0.85rem', fontWeight: 500,
+                                    boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
+                                }}
+                            >
+                                {isRunning ? <i className="ri-loader-4-line ri-spin"></i> : <i className="ri-play-fill"></i>}
+                                {isRunning ? (locale === 'zh' ? '运行中...' : 'Running') : (locale === 'zh' ? '运行' : 'Run')}
+                            </button>
+                        )}
                         
                         {['Markdown', 'HTML', 'SVG', 'Mermaid', 'ECharts'].includes(language) && (
                             <>
@@ -222,6 +301,46 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                     )}
                 </div>
                 
+                {showTerminal && (
+                    <div style={{
+                        height: '200px',
+                        borderTop: '1px solid var(--border-color)',
+                        background: '#0d1117',
+                        color: '#c9d1d9',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative'
+                    }}>
+                        <div style={{
+                            padding: '4px 12px',
+                            background: '#161b22',
+                            borderBottom: '1px solid var(--border-color)',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            fontSize: '0.8rem', color: '#8b949e'
+                        }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="ri-terminal-box-line"></i> Terminal
+                            </span>
+                            <button 
+                                onClick={() => setShowTerminal(false)}
+                                style={{ background: 'transparent', border: 'none', color: '#8b949e', cursor: 'pointer' }}
+                            >
+                                <i className="ri-close-line"></i>
+                            </button>
+                        </div>
+                        <div style={{
+                            padding: '12px',
+                            flex: 1,
+                            overflowY: 'auto',
+                            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                            fontSize: '0.85rem',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'
+                        }}>
+                            {runOutput}
+                        </div>
+                    </div>
+                )}
                 <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--border-color)', background: 'var(--card-bg)' }}>
                     <div className="modal-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1, marginRight: '16px' }}>
                         {tags.map(tag => (
