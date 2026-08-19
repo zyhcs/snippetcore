@@ -7,6 +7,7 @@ import { LANGUAGE_REGISTRY } from '../utils/languages';
 
 import MarkdownViewer from './MarkdownViewer';
 import HtmlViewer from './HtmlViewer';
+import { urlExtension } from '../utils/urlExtension';
 import { t } from '../i18n';
 import { showToast } from '../utils/toast';
 
@@ -192,7 +193,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                             value={codeContent}
                             height="100%"
                             theme={vscodeDark}
-                            extensions={languageExtension}
+                            extensions={[...(languageExtension as any[]), ...urlExtension]}
                             onChange={(value) => setCodeContent(value)}
                             style={{ flex: 1, fontSize: '0.9rem', overflow: 'auto' }}
                             basicSetup={{
