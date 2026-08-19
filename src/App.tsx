@@ -520,6 +520,25 @@ function App() {
                     setIsSettingsOpen(true);
                 } else if (action === 'share' && snippet) {
                     handleShareSnippet(snippet);
+                } else if (action === 'export' && snippet) {
+                    try {
+                        const { save } = await import('@tauri-apps/plugin-dialog');
+                        const { writeTextFile } = await import('@tauri-apps/plugin-fs');
+                        
+                        const langMap: Record<string, string> = { 'ABAP': 'abap', 'C#': 'cs', 'C++': 'cpp', 'CSS': 'css', 'Dart': 'dart', 'Go': 'go', 'HTML': 'html', 'Java': 'java', 'JavaScript': 'js', 'JSON': 'json', 'Kotlin': 'kt', 'Markdown': 'md', 'Objective-C': 'm', 'PHP': 'php', 'Python': 'py', 'Ruby': 'rb', 'Rust': 'rs', 'Shell': 'sh', 'SQL': 'sql', 'Swift': 'swift', 'Text': 'txt', 'TypeScript': 'ts', 'Vue': 'vue', 'XML': 'xml', 'YAML': 'yml', 'SVG': 'svg' };
+                        const ext = langMap[snippet.language] || 'txt';
+                        const safeTitle = snippet.title.replace(/[\\/:*?"<>|]/g, '_');
+                        
+                        const filePath = await save({
+                            defaultPath: `${safeTitle}.${ext}`
+                        });
+                        if (filePath) {
+                            await writeTextFile(filePath, snippet.code_content);
+                            showToast(appSettings.locale === 'zh' ? '导出成功' : 'Exported successfully', 'success');
+                        }
+                    } catch (e) {
+                        showToast(String(e), 'error');
+                    }
                 } else if (action === 'duplicate' && snippet) {
                     try {
                         await addSnippet({

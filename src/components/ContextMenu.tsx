@@ -63,6 +63,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, type, snippet, locale, 
                     <button className="context-menu-item" onClick={() => onAction('duplicate', snippet)}>
                         <i className="ri-file-copy-2-line"></i> {locale === 'zh' ? '复制卡片' : 'Duplicate'}
                     </button>
+                    <button className="context-menu-item" onClick={() => onAction('export', snippet)}>
+                        <i className="ri-download-2-line"></i> {locale === 'zh' ? '导出为文件' : 'Export to File'}
+                    </button>
                     <hr style={{ border: 'none', borderTop: '1px solid var(--border-color)', margin: '4px 0' }} />
                 </>
             )}
