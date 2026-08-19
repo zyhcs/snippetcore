@@ -7,6 +7,19 @@ let dbInstance: Database | null = null;
 export async function getDb() {
     if (!dbInstance) {
         dbInstance = await Database.load('sqlite:snippetcore.db');
+        try {
+            await dbInstance.execute(`
+              CREATE TABLE IF NOT EXISTS snippet_history (
+                id TEXT PRIMARY KEY,
+                snippet_id TEXT,
+                title TEXT,
+                code_content TEXT,
+                language TEXT,
+                tags TEXT,
+                updated_at DATETIME
+              );
+            `);
+        } catch(e) {}
     }
     return dbInstance;
 }
