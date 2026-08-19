@@ -22,6 +22,7 @@ const getLanguageIcon = (lang: string) => {
         case 'markdown': return <i className="ri-markdown-line" style={{ color: '#f43f5e' }}></i>;
         case 'css': return <i className="ri-css3-line" style={{ color: '#3b82f6' }}></i>;
         case 'html': return <i className="ri-html5-line" style={{ color: '#e34f26' }}></i>;
+        case 'multi-file': return <i className="ri-stack-line" style={{ color: '#8b5cf6' }}></i>;
         default: return <i className="ri-file-text-line" style={{ color: '#06b6d4' }}></i>;
     }
 };

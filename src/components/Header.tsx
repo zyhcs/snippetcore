@@ -44,6 +44,10 @@ const Header: React.FC<HeaderProps> = ({ searchQuery, setSearchQuery, onNewSnipp
                         ref={searchInputRef}
                         type="text"  
                         placeholder={t('searchPlaceholder', locale)}
+                        autoComplete="off"
+                        spellCheck={false}
+                        autoCorrect="off"
+                        autoCapitalize="off"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />

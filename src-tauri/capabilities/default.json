@@ -95,6 +95,41 @@
           "args": true
         }
       ]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "run-node",
+          "cmd": "node",
+          "args": true
+        },
+        {
+          "name": "run-python",
+          "cmd": "python",
+          "args": true
+        },
+        {
+          "name": "run-python3",
+          "cmd": "python3",
+          "args": true
+        },
+        {
+          "name": "run-sh",
+          "cmd": "sh",
+          "args": true
+        },
+        {
+          "name": "run-cmd",
+          "cmd": "cmd",
+          "args": true
+        },
+        {
+          "name": "run-bash",
+          "cmd": "bash",
+          "args": true
+        }
+      ]
     }
   ]
 }

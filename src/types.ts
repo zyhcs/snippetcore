@@ -1,3 +1,10 @@
+export interface Folder {
+    id: string;
+    name: string;
+    parent_id: string | null;
+    created_at: string;
+}
+
 declare global {
     interface Window {
         __TAURI_INTERNALS__?: any;
@@ -13,6 +20,7 @@ export interface Snippet {
     is_favorite: boolean;
     created_at: string;
     updated_at: string;
+    folder_id?: string;
 }
 
 export interface SnippetFormData {
@@ -21,6 +29,7 @@ export interface SnippetFormData {
     language: string;
     tags: string[];
     is_favorite: boolean;
+    folder_id?: string;
 }
 
 export interface AppSettings {

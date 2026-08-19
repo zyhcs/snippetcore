@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import 'remixicon/fonts/remixicon.css';
-import { Snippet, SnippetFormData } from './types';
-import { getSnippets, addSnippet, updateSnippet, deleteSnippet, toggleFavorite } from './db';
+import { Snippet, SnippetFormData, Folder } from './types';
+import { getSnippets, addSnippet, updateSnippet, deleteSnippet, toggleFavorite, getFolders } from './db';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -48,6 +48,8 @@ const defaultSettings: AppSettings = {
 
 function App() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -222,6 +224,10 @@ function App() {
     try {
       const data = await getSnippets();
       setSnippets(data);
+      try {
+          const fData = await getFolders();
+          setFolders(fData);
+      } catch (e) {}
     } catch (error) {
       console.error("Failed to load snippets", error);
     }
@@ -237,7 +243,18 @@ function App() {
     setIsModalOpen(true);
   };
 
+    useEffect(() => {
+    if (filterType === 'folder' as any) {
+      setCurrentFolderId(activeTab);
+    } else {
+      setCurrentFolderId(null);
+    }
+  }, [filterType, activeTab]);
+
   const handleSaveSnippet = async (data: SnippetFormData) => {
+    if (!editingSnippet?.id && currentFolderId) {
+      data.folder_id = currentFolderId;
+    }
     try {
       if (editingSnippet && editingSnippet.id) {
         await updateSnippet(editingSnippet.id, data);
@@ -460,6 +477,8 @@ function App() {
       )}
       <Sidebar 
         snippets={snippets}
+        folders={folders}
+        onFoldersChange={loadSnippets}
         filterType={filterType}
         setFilterType={setFilterType}
         activeTab={activeTab}

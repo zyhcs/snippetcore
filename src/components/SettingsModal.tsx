@@ -15,7 +15,7 @@ interface SettingsModalProps {
     onSnippetsChanged?: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initialTab = 'appearance', onClose, onSave }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initialTab = 'appearance', onClose, onSave, onSnippetsChanged }) => {
     const [localSettings, setLocalSettings] = useState<AppSettings>({ ...settings });
     const [activeTab, setActiveTab] = useState<'appearance' | 'languages' | 'sidebar' | 'sync'>(initialTab);
         const [isSyncing, setIsSyncing] = useState(false);
@@ -624,7 +624,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                                 type="checkbox" 
                                                 checked={localSettings.syncOnStart || false}
                                                 onChange={e => setLocalSettings({...localSettings, syncOnStart: e.target.checked})}
-                                                style={{ accentColor: 'var(--theme-color)', width: '18px', height: '18px', cursor: 'pointer' }}
+                                                className="custom-checkbox"
                                             />
                                             {t('syncOnStart', locale) || 'Pull on Startup'}
                                         </label>
@@ -633,7 +633,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                                 type="checkbox" 
                                                 checked={localSettings.syncOnSave || false}
                                                 onChange={e => setLocalSettings({...localSettings, syncOnSave: e.target.checked})}
-                                                style={{ accentColor: 'var(--theme-color)', width: '18px', height: '18px', cursor: 'pointer' }}
+                                                className="custom-checkbox"
                                             />
                                             {t('syncOnSave', locale) || 'Push on Save (Debounced)'}
                                         </label>
@@ -696,6 +696,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                                         lastSyncTime: new Date().toISOString()
                                                     }));
                                                     setSyncStatus({ message: t('syncSuccess', locale) || 'Sync Success', type: 'success' });
+                                                    if (onSnippetsChanged) onSnippetsChanged();
                                                 } catch (e) {
                                                     console.error(e);
                                                     setSyncStatus({ message: (t('syncFailed', locale) || 'Sync Failed') + ": " + String(e), type: 'error' });
@@ -707,6 +708,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                             {isSyncing ? <i className="ri-loader-4-line ri-spin"></i> : <i className="ri-upload-cloud-2-line"></i>} 
                                             {t('syncNow', locale) || 'Sync Now'}
                                         </button>
+
+                                        
 
                                         <button 
                                             className="btn-secondary" 
@@ -736,7 +739,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ settings, snippets, initi
                                                             newLocalSettings.lastSyncTime = new Date().toISOString();
                                                             setLocalSettings(newLocalSettings);
                                                         }
-                                                        setSyncStatus({ message: locale === 'zh' ? '强制拉取成功！请刷新页面或重新打开以查看最新数据。' : 'Pull success! Refresh or reopen to see latest data.', type: 'success' });
+                                                        setSyncStatus({ message: locale === 'zh' ? '强制拉取成功！已刷新最新数据。' : 'Pull success! Data refreshed.', type: 'success' });
+                                                        if (onSnippetsChanged) onSnippetsChanged();
                                                     } else {
                                                         setSyncStatus({ message: locale === 'zh' ? '缺少仓库名称' : 'Missing repo name', type: 'error' });
                                                     }

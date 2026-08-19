@@ -9,6 +9,19 @@ export async function getDb() {
         dbInstance = await Database.load('sqlite:snippetcore.db');
         try {
             await dbInstance.execute(`
+              CREATE TABLE IF NOT EXISTS folders (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                parent_id TEXT,
+                created_at DATETIME
+              );
+            `);
+        } catch(e) {}
+        try {
+            await dbInstance.execute(`ALTER TABLE snippets ADD COLUMN folder_id TEXT;`);
+        } catch(e) {}
+        try {
+            await dbInstance.execute(`
               CREATE TABLE IF NOT EXISTS snippet_history (
                 id TEXT PRIMARY KEY,
                 snippet_id TEXT,
@@ -78,8 +91,8 @@ export async function addSnippet(data: SnippetFormData): Promise<Snippet> {
     const tagsJson = JSON.stringify(data.tags);
     
     await db.execute(
-        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [id, data.title, data.code_content, data.language, tagsJson, data.is_favorite ? 1 : 0, now, now]
+        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at, folder_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+        [id, data.title, data.code_content, data.language, tagsJson, data.is_favorite ? 1 : 0, now, now, data.folder_id || null]
     );
     
     return {
@@ -120,8 +133,8 @@ export async function updateSnippet(id: string, data: SnippetFormData): Promise<
     }
     
     await db.execute(
-        'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
-        [data.title, data.code_content, data.language, tagsJson, data.is_favorite ? 1 : 0, now, id]
+        'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6, folder_id = $8 WHERE id = $7',
+        [data.title, data.code_content, data.language, tagsJson, data.is_favorite ? 1 : 0, now, id, data.folder_id || null]
     );
 }
 
@@ -205,13 +218,13 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
                     }
                     
                     await db.execute(
-                        'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6 WHERE id = $7',
-                        [s.title, s.code_content, s.language, mergedTags, mergedFav ? 1 : 0, s.updated_at, s.id]
+                        'UPDATE snippets SET title = $1, code_content = $2, language = $3, tags = $4, is_favorite = $5, updated_at = $6, folder_id = $8 WHERE id = $7',
+                        [s.title, s.code_content, s.language, mergedTags, mergedFav ? 1 : 0, s.updated_at, s.id, (s as any).folder_id || null]
                     );
                 } else {
                     await db.execute(
-                        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                        [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at]
+                        'INSERT INTO snippets (id, title, code_content, language, tags, is_favorite, created_at, updated_at, folder_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                        [s.id, s.title, s.code_content, s.language, s.tags, s.is_favorite ? 1 : 0, s.created_at, s.updated_at, (s as any).folder_id || null]
                     );
                 }
             } catch (e) {
@@ -224,4 +237,22 @@ export async function importData(jsonString: string, strategy: 'all' | 'snippets
         console.error("Failed to import data", e);
         throw e;
     }
+}
+
+export async function getFolders(): Promise<any[]> {
+    const db = await getDb();
+    return await db.select('SELECT * FROM folders ORDER BY created_at ASC');
+}
+export async function createFolder(id: string, name: string, parent_id: string | null): Promise<void> {
+    const db = await getDb();
+    await db.execute('INSERT INTO folders (id, name, parent_id, created_at) VALUES ($1, $2, $3, $4)', [id, name, parent_id, new Date().toISOString()]);
+}
+export async function renameFolder(id: string, newName: string): Promise<void> {
+    const db = await getDb();
+    await db.execute('UPDATE folders SET name = $1 WHERE id = $2', [newName, id]);
+}
+export async function deleteFolder(id: string): Promise<void> {
+    const db = await getDb();
+    await db.execute('DELETE FROM folders WHERE id = $1', [id]);
+    await db.execute('UPDATE snippets SET folder_id = NULL WHERE folder_id = $1', [id]);
 }

@@ -65,26 +65,8 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
     useEffect(() => {
         if (snippet) {
             setTitle(snippet.title);
-            
-            try {
-                if (snippet.code_content && snippet.code_content.trim().startsWith('{"__multi":true')) {
-                    const parsed = JSON.parse(snippet.code_content);
-                    if (parsed.files && parsed.files.length > 0) {
-                        setCodeContent(parsed.files[0].content || '');
-                        setLanguage(parsed.files[0].language || 'JavaScript');
-                    } else {
-                        setCodeContent('');
-                        setLanguage('JavaScript');
-                    }
-                } else {
-                    setCodeContent(snippet.code_content);
-                    setLanguage(snippet.language);
-                }
-            } catch(e) {
-                setCodeContent(snippet.code_content);
-                setLanguage(snippet.language);
-            }
-
+            setCodeContent(snippet.code_content);
+            setLanguage(snippet.language);
             try {
                 const parsed = JSON.parse(snippet.tags || '[]');
                 const tagsArr = Array.isArray(parsed) ? parsed : (typeof parsed === 'string' ? JSON.parse(parsed) : []);
@@ -199,7 +181,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
 
     return (
         <div className="modal-overlay active" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ height: '85vh' }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <input 
                         type="text" 
@@ -323,7 +305,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                     </div>
                 </div>
                 
-                <div className="modal-editor" style={{ display: 'flex', flexDirection: 'column', padding: 0, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                <div className="modal-editor" style={{ display: 'flex', flexDirection: 'column', padding: 0 }}>
                     {['Markdown', 'HTML', 'SVG', 'Mermaid', 'ECharts'].includes(language) && isPreviewMode ? (
                         <div className="md-scroll-wrapper" style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                             {language === 'Markdown' ? (
@@ -369,7 +351,6 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                 {showTerminal && (
                     <div style={{
                         height: '200px',
-                        flexShrink: 0,
                         borderTop: '1px solid var(--border-color)',
                         background: '#0d1117',
                         color: '#c9d1d9',
@@ -407,7 +388,7 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                         </div>
                     </div>
                 )}
-                <div className="modal-footer" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--border-color)', background: 'var(--card-bg)' }}>
+                <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--border-color)', background: 'var(--card-bg)' }}>
                     <div className="modal-tags" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1, marginRight: '16px' }}>
                         {tags.map(tag => (
                             <span key={tag} className="tag tag-purple" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '6px' }}>
@@ -418,8 +399,6 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                         <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', padding: '0 8px', border: '1px solid var(--border-color)' }}>
                             <input 
                                 type="text" 
-                                autoComplete="off"
-                                spellCheck={false}
                                 placeholder={t('addTag', locale)} 
                                 value={newTag}
                                 onChange={e => setNewTag(e.target.value)}
@@ -441,7 +420,6 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
             {showHistory && snippet && (
                 <HistoryModal 
                     snippetId={snippet.id}
-                    currentCodeContent={codeContent}
                     locale={locale}
                     onClose={() => setShowHistory(false)}
                     onRestore={() => {
