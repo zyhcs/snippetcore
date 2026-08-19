@@ -8,6 +8,7 @@ import { LANGUAGE_REGISTRY } from '../utils/languages';
 import MarkdownViewer from './MarkdownViewer';
 import HtmlViewer from './HtmlViewer';
 import HistoryModal from './HistoryModal';
+import { formatCode } from '../utils/formatter';
 import { urlExtension } from '../utils/urlExtension';
 import { t } from '../i18n';
 import { showToast } from '../utils/toast';
@@ -138,6 +139,16 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
         }
     };
 
+        const handleFormat = async () => {
+        const formatted = await formatCode(codeContent, language);
+        if (formatted !== codeContent) {
+            setCodeContent(formatted);
+            showToast(locale === 'zh' ? '代码已格式化' : 'Code formatted', 'success');
+        } else {
+            showToast(locale === 'zh' ? '不支持该语言或代码已是最佳格式' : 'Unsupported language or already formatted', 'info');
+        }
+    };
+
     const handleSave = () => {
         if (!codeContent.trim()) {
             showToast(locale === 'zh' ? '代码内容不能为空' : 'Code content cannot be empty', 'error');
@@ -211,6 +222,23 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                             ))}
                         </select>
                         
+                        <button 
+                            onClick={handleFormat}
+                            style={{
+                                padding: '6px 12px',
+                                background: 'transparent',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '6px',
+                                fontSize: '0.85rem'
+                            }}
+                            title={locale === 'zh' ? '格式化代码' : 'Format Code'}
+                        >
+                            <i className="ri-magic-line"></i>
+                        </button>
+
                         {supportedRunners[language] && (
                             <button 
                                 onClick={handleRun}

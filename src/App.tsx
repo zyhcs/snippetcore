@@ -316,10 +316,12 @@ function App() {
     if (!window.__TAURI_INTERNALS__) return;
     
     let unlisten: () => void;
+    let isCancelled = false;
     
     const setupDragDrop = async () => {
         try {
-            unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
+            const unlistenFn = await getCurrentWindow().onDragDropEvent(async (event) => {
+                if (isCancelled) return;
                 if (event.payload.type === 'enter' || event.payload.type === 'over') {
                     setIsDragging(true);
                 } else if (event.payload.type === 'drop') {
@@ -342,23 +344,15 @@ function App() {
                             const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'yaml': 'YAML', 'svg': 'SVG' };
                             if (langMap[ext]) language = langMap[ext];
 
-                            await addSnippet({
+                            setEditingSnippet({
+                                id: '',
                                 title: title,
                                 code_content: contentStr,
                                 language: language,
-                                tags: [],
-                                is_favorite: false
+                                tags: '[]',
+                                is_favorite: false,
+                                updated_at: new Date().toISOString(), created_at: new Date().toISOString()
                             });
-                            
-                            showToast(appSettings.locale === 'zh' ? `已添加文件 ${bName}` : `Added file ${bName}`, 'success');
-                            loadSnippets();
-                            
-                            if (appSettings.syncOnSave) {
-                                if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-                                syncTimeoutRef.current = window.setTimeout(() => {
-                                    executeBackgroundSync('push');
-                                }, 5000);
-                            }
                         } catch (err) {
                             showToast(String(err), 'error');
                         }
@@ -367,6 +361,7 @@ function App() {
                     setIsDragging(false);
                 }
             });
+            if (!isCancelled) unlisten = unlistenFn;
         } catch (e) {
             console.error("Failed to setup drag drop", e);
         }
@@ -375,6 +370,7 @@ function App() {
     setupDragDrop();
     
     return () => {
+        isCancelled = true;
         if (unlisten) unlisten();
     };
   }, [appSettings]);
