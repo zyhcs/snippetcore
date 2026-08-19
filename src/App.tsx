@@ -56,6 +56,7 @@ function App() {
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   const [appSettings, setAppSettings] = useState<AppSettings>(defaultSettings);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'appearance' | 'languages' | 'sidebar' | 'sync'>('appearance');
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'global' | 'snippet', snippet?: Snippet } | null>(null);
 
@@ -299,6 +300,58 @@ function App() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const filename = file.name;
+      const contentStr = await file.text();
+      
+      const lastDotIndex = filename.lastIndexOf('.');
+      let title = filename;
+      let ext = '';
+      if (lastDotIndex > 0) {
+          title = filename.substring(0, lastDotIndex);
+          ext = filename.substring(lastDotIndex + 1).toLowerCase();
+      }
+      
+      let language = 'Text';
+      const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'yaml': 'YAML', 'svg': 'SVG' };
+      if (langMap[ext]) language = langMap[ext];
+
+      try {
+          await addSnippet({
+              title: title,
+              code_content: contentStr,
+              language: language,
+              tags: [],
+              is_favorite: false
+          });
+          showToast(appSettings.locale === 'zh' ? `已添加文件 ${filename}` : `Added file ${filename}`, 'success');
+          loadSnippets();
+          if (appSettings.syncOnSave) {
+              if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+              syncTimeoutRef.current = window.setTimeout(() => {
+                  executeBackgroundSync('push');
+              }, 5000);
+          }
+      } catch (err) {
+          showToast(String(err), 'error');
+      }
+    }
+  };
+
   const handleCopySnippet = async (code: string) => {
     try {
       await writeText(code);
@@ -348,7 +401,31 @@ function App() {
     <div 
       className="app-container"
       onContextMenu={(e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, type: 'global' }); }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      style={{ position: 'relative' }}
     >
+      {isDragging && (
+          <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '4px dashed var(--theme-color)',
+              borderRadius: '12px',
+              margin: '8px'
+          }}>
+              <div style={{ textAlign: 'center', color: '#fff' }}>
+                  <i className="ri-file-add-line" style={{ fontSize: '4rem', marginBottom: '16px', display: 'block' }}></i>
+                  <h2>{appSettings.locale === 'zh' ? '松开以上传并添加为片段' : 'Drop to add as snippet'}</h2>
+              </div>
+          </div>
+      )}
       <Sidebar 
         snippets={snippets}
         filterType={filterType}
