@@ -239,7 +239,7 @@ function App() {
 
   const handleSaveSnippet = async (data: SnippetFormData) => {
     try {
-      if (editingSnippet) {
+      if (editingSnippet && editingSnippet.id) {
         await updateSnippet(editingSnippet.id, data);
         showToast(t('saveSuccess', appSettings.locale), 'success');
       } else {
@@ -497,7 +497,7 @@ function App() {
           snippet={editingSnippet} 
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveSnippet}
-          onDelete={editingSnippet ? () => handleDeleteSnippet(editingSnippet.id) : undefined}
+          onDelete={(editingSnippet && editingSnippet.id) ? () => handleDeleteSnippet(editingSnippet.id) : undefined}
           settings={appSettings}
         />
       )}
