@@ -30,7 +30,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ snippetId, onClose, onResto
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100 }}>
+        <div className="modal-overlay active" onClick={onClose} style={{ zIndex: 1100 }}>
             <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '900px', height: '600px', display: 'flex', flexDirection: 'column' }}>
                 <div className="modal-header" style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>
