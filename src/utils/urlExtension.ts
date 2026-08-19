@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 
 const urlRegex = /(https?:\/\/[^\s"'<>]+)/g;
 
-const linkDecoration = Decoration.mark({ class: "cm-clickable-url", style: "text-decoration: underline; cursor: pointer; color: var(--theme-color);" });
+const linkDecoration = Decoration.mark({ class: "cm-clickable-url", attributes: { style: "text-decoration: underline; cursor: pointer; color: var(--theme-color);" } });
 
 const urlDecorator = new MatchDecorator({
   regexp: urlRegex,

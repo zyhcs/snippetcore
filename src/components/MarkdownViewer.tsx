@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './MarkdownViewer.css';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 interface MarkdownViewerProps {
     content: string;
@@ -15,6 +16,20 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                    a({ node, href, children, ...props }: any) {
+                        return (
+                            <a 
+                                href={href} 
+                                {...props} 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (href) openUrl(href).catch(console.error);
+                                }}
+                            >
+                                {children}
+                            </a>
+                        );
+                    },
                     code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         return !inline && match ? (

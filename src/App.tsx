@@ -19,6 +19,8 @@ import { AppSettings } from './types';
 import { t } from './i18n';
 import { showToast } from './utils/toast';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { readTextFile } from '@tauri-apps/plugin-fs';
+import { basename, extname } from '@tauri-apps/api/path';
 import { applyTheme } from './themes';
 import { readSettingsFromFile, writeSettingsToFile } from './utils/configStore';
 
@@ -310,46 +312,78 @@ function App() {
     setIsDragging(false);
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      const filename = file.name;
-      const contentStr = await file.text();
-      
-      const lastDotIndex = filename.lastIndexOf('.');
-      let title = filename;
-      let ext = '';
-      if (lastDotIndex > 0) {
-          title = filename.substring(0, lastDotIndex);
-          ext = filename.substring(lastDotIndex + 1).toLowerCase();
-      }
-      
-      let language = 'Text';
-      const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'yaml': 'YAML', 'svg': 'SVG' };
-      if (langMap[ext]) language = langMap[ext];
+  useEffect(() => {
+    if (!window.__TAURI_INTERNALS__) return;
+    
+    let unlisten: () => void;
+    
+    const setupDragDrop = async () => {
+        try {
+            unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
+                if (event.payload.type === 'enter' || event.payload.type === 'over') {
+                    setIsDragging(true);
+                } else if (event.payload.type === 'drop') {
+                    setIsDragging(false);
+                    const paths = event.payload.paths;
+                    if (paths && paths.length > 0) {
+                        const filePath = paths[0];
+                        try {
+                            const contentStr = await readTextFile(filePath);
+                            const bName = await basename(filePath);
+                            const eName = await extname(filePath);
+                            
+                            let title = bName;
+                            if (eName) {
+                                title = bName.substring(0, bName.lastIndexOf('.'));
+                            }
+                            const ext = eName ? eName.toLowerCase() : '';
+                            
+                            let language = 'Text';
+                            const langMap: Record<string, string> = { 'abap': 'ABAP', 'cs': 'C#', 'cpp': 'C++', 'css': 'CSS', 'dart': 'Dart', 'go': 'Go', 'html': 'HTML', 'java': 'Java', 'js': 'JavaScript', 'json': 'JSON', 'kt': 'Kotlin', 'md': 'Markdown', 'm': 'Objective-C', 'php': 'PHP', 'py': 'Python', 'rb': 'Ruby', 'rs': 'Rust', 'sh': 'Shell', 'sql': 'SQL', 'swift': 'Swift', 'txt': 'Text', 'ts': 'TypeScript', 'vue': 'Vue', 'xml': 'XML', 'yml': 'YAML', 'yaml': 'YAML', 'svg': 'SVG' };
+                            if (langMap[ext]) language = langMap[ext];
 
-      try {
-          await addSnippet({
-              title: title,
-              code_content: contentStr,
-              language: language,
-              tags: [],
-              is_favorite: false
-          });
-          showToast(appSettings.locale === 'zh' ? `已添加文件 ${filename}` : `Added file ${filename}`, 'success');
-          loadSnippets();
-          if (appSettings.syncOnSave) {
-              if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-              syncTimeoutRef.current = window.setTimeout(() => {
-                  executeBackgroundSync('push');
-              }, 5000);
-          }
-      } catch (err) {
-          showToast(String(err), 'error');
-      }
-    }
+                            await addSnippet({
+                                title: title,
+                                code_content: contentStr,
+                                language: language,
+                                tags: [],
+                                is_favorite: false
+                            });
+                            
+                            showToast(appSettings.locale === 'zh' ? `已添加文件 ${bName}` : `Added file ${bName}`, 'success');
+                            loadSnippets();
+                            
+                            if (appSettings.syncOnSave) {
+                                if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+                                syncTimeoutRef.current = window.setTimeout(() => {
+                                    executeBackgroundSync('push');
+                                }, 5000);
+                            }
+                        } catch (err) {
+                            showToast(String(err), 'error');
+                        }
+                    }
+                } else if (event.payload.type === 'leave') {
+                    setIsDragging(false);
+                }
+            });
+        } catch (e) {
+            console.error("Failed to setup drag drop", e);
+        }
+    };
+    
+    setupDragDrop();
+    
+    return () => {
+        if (unlisten) unlisten();
+    };
+  }, [appSettings]);
+
+  const handleDrop = async (e: React.DragEvent) => {
+      // Fallback for non-Tauri environment
+      e.preventDefault();
+      setIsDragging(false);
+      // Basic HTML5 implementation omitted here since Tauri will handle it
   };
 
   const handleCopySnippet = async (code: string) => {
