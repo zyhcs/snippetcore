@@ -65,10 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, folders = [], onFoldersChan
     }, [snippets]);
     return (
         <aside className="sidebar">
-            <div className="logo">
-                <img src="/logo.png" alt="SnippetCore" style={{ width: 28, height: 28, borderRadius: 8 }} />
-                <span>SnippetCore</span>
-            </div>
+            
             
             <div className="nav-section">
                 <div className="nav-title">{t('library', locale)}</div>

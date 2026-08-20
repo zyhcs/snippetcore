@@ -146,6 +146,7 @@ function App() {
     // Apply Theme
     useEffect(() => {
         applyTheme(appSettings.themePreset, appSettings.themeColor);
+        try { window.__TAURI_INTERNALS__ && getCurrentWindow().setTitle(appSettings.locale === 'zh' ? '碎星' : 'snippet-star'); } catch(e) {}
     }, [appSettings.themeColor, appSettings.themePreset]);
 
   useEffect(() => {
