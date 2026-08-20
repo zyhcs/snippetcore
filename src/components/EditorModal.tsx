@@ -12,6 +12,7 @@ import { formatCode } from '../utils/formatter';
 import { urlExtension } from '../utils/urlExtension';
 import { t } from '../i18n';
 import { showToast } from '../utils/toast';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 interface EditorModalProps {
     snippet: Snippet | null;
@@ -308,8 +309,17 @@ const EditorModal: React.FC<EditorModalProps> = ({ snippet, onClose, onSave, onD
                         )}
 
                         <div style={{ width: '1px', height: '24px', background: 'var(--border-color)', margin: '0 4px' }}></div>
-                        <button className="btn-icon" title={t('copyCode', locale)} onClick={() => navigator.clipboard.writeText(codeContent)}>
-                            <i className="ri-clipboard-line"></i>
+                        <button className="btn-icon" title={t('copyCode', locale)} onClick={async () => {
+                            try {
+                                await writeText(codeContent);
+                                showToast(locale === 'zh' ? '复制成功' : 'Copied to clipboard', 'success');
+                            } catch (e) {
+                                console.error(e);
+                                navigator.clipboard.writeText(codeContent);
+                                showToast(locale === 'zh' ? '复制成功' : 'Copied to clipboard', 'success');
+                            }
+                        }}>
+                            <i className="ri-file-copy-2-line"></i>
                         </button>
                         {onDelete && (
                             <button className="btn-icon" title={t('deleteSnippet', locale)} onClick={onDelete}>

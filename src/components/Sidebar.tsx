@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Snippet, AppSettings, Folder } from '../types';
-import { createFolder, renameFolder, deleteFolder } from '../db';
-import { v4 as uuidv4 } from 'uuid';
+// import { createFolder, renameFolder, deleteFolder } from '../db';
+// import { v4 as uuidv4 } from 'uuid';
 import { t } from '../i18n';
 
 interface SidebarProps {
@@ -91,102 +91,6 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, folders = [], onFoldersChan
                 </a>
             </div>
 
-            <div className="nav-section">
-                <div 
-                    className="nav-title" 
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setIsFoldersOpen(!isFoldersOpen)}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className={isFoldersOpen ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"}></i>
-                        {locale === 'zh' ? '文件夹' : 'Folders'}
-                    </div>
-                    <i 
-                        className="ri-folder-add-line" 
-                        style={{ opacity: 0.6 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const id = uuidv4();
-                            createFolder(id, locale === 'zh' ? '新建文件夹' : 'New Folder', null).then(() => {
-                                if (onFoldersChange) onFoldersChange();
-                                setIsFoldersOpen(true);
-                                setEditingFolderId(id);
-                                setFolderNameInput(locale === 'zh' ? '新建文件夹' : 'New Folder');
-                            });
-                        }}
-                    ></i>
-                </div>
-                {isFoldersOpen && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-                        {folders.map(f => (
-                            <a 
-                                key={f.id}
-                                href="#"
-                                className={`nav-item ${filterType === 'folder' && activeTab === f.id ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); setFilterType('folder'); setActiveTab(f.id); }}
-                                style={{ display: 'flex', justifyContent: 'space-between' }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-                                    <i className="ri-folder-2-line" style={{ color: 'var(--theme-color)' }}></i>
-                                    {editingFolderId === f.id ? (
-                                        <input 
-                                            autoFocus
-                                            value={folderNameInput}
-                                            onChange={e => setFolderNameInput(e.target.value)}
-                                            onBlur={() => {
-                                                if (folderNameInput.trim() && folderNameInput !== f.name) {
-                                                    renameFolder(f.id, folderNameInput).then(() => onFoldersChange && onFoldersChange());
-                                                }
-                                                setEditingFolderId(null);
-                                            }}
-                                            onKeyDown={e => {
-                                                if (e.key === 'Enter') {
-                                                    if (folderNameInput.trim() && folderNameInput !== f.name) {
-                                                        renameFolder(f.id, folderNameInput).then(() => onFoldersChange && onFoldersChange());
-                                                    }
-                                                    setEditingFolderId(null);
-                                                }
-                                            }}
-                                            style={{ background: 'rgba(255,255,255,0.1)', color: 'inherit', border: '1px solid var(--theme-color)', outline: 'none', borderRadius: '4px', padding: '2px 4px', width: '100px' }}
-                                            onClick={e => e.stopPropagation()}
-                                        />
-                                    ) : (
-                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
-                                    )}
-                                </div>
-                                <div className="folder-actions" style={{ display: 'flex', gap: '8px', opacity: 0.5 }}>
-                                    <i 
-                                        className="ri-edit-line" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            setEditingFolderId(f.id);
-                                            setFolderNameInput(f.name);
-                                        }}
-                                    ></i>
-                                    <i 
-                                        className="ri-delete-bin-line" 
-                                        style={{ color: '#ef4444' }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            if (window.confirm(locale === 'zh' ? '确定删除该文件夹吗？(代码片段不会被删除)' : 'Delete this folder? (Snippets will not be deleted)')) {
-                                                deleteFolder(f.id).then(() => {
-                                                    if (filterType === 'folder' && activeTab === f.id) {
-                                                        setFilterType('all');
-                                                        setActiveTab('all');
-                                                    }
-                                                    if (onFoldersChange) onFoldersChange();
-                                                });
-                                            }
-                                        }}
-                                    ></i>
-                                </div>
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </div>
             
             <div className="nav-section scrollable">
                 <div 
@@ -260,102 +164,6 @@ const Sidebar: React.FC<SidebarProps> = ({ snippets, folders = [], onFoldersChan
                 )}
             </div>
 
-            <div className="nav-section">
-                <div 
-                    className="nav-title" 
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-                    onClick={() => setIsFoldersOpen(!isFoldersOpen)}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className={isFoldersOpen ? "ri-arrow-down-s-line" : "ri-arrow-right-s-line"}></i>
-                        {locale === 'zh' ? '文件夹' : 'Folders'}
-                    </div>
-                    <i 
-                        className="ri-folder-add-line" 
-                        style={{ opacity: 0.6 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const id = uuidv4();
-                            createFolder(id, locale === 'zh' ? '新建文件夹' : 'New Folder', null).then(() => {
-                                if (onFoldersChange) onFoldersChange();
-                                setIsFoldersOpen(true);
-                                setEditingFolderId(id);
-                                setFolderNameInput(locale === 'zh' ? '新建文件夹' : 'New Folder');
-                            });
-                        }}
-                    ></i>
-                </div>
-                {isFoldersOpen && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-                        {folders.map(f => (
-                            <a 
-                                key={f.id}
-                                href="#"
-                                className={`nav-item ${filterType === 'folder' && activeTab === f.id ? 'active' : ''}`}
-                                onClick={(e) => { e.preventDefault(); setFilterType('folder'); setActiveTab(f.id); }}
-                                style={{ display: 'flex', justifyContent: 'space-between' }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
-                                    <i className="ri-folder-2-line" style={{ color: 'var(--theme-color)' }}></i>
-                                    {editingFolderId === f.id ? (
-                                        <input 
-                                            autoFocus
-                                            value={folderNameInput}
-                                            onChange={e => setFolderNameInput(e.target.value)}
-                                            onBlur={() => {
-                                                if (folderNameInput.trim() && folderNameInput !== f.name) {
-                                                    renameFolder(f.id, folderNameInput).then(() => onFoldersChange && onFoldersChange());
-                                                }
-                                                setEditingFolderId(null);
-                                            }}
-                                            onKeyDown={e => {
-                                                if (e.key === 'Enter') {
-                                                    if (folderNameInput.trim() && folderNameInput !== f.name) {
-                                                        renameFolder(f.id, folderNameInput).then(() => onFoldersChange && onFoldersChange());
-                                                    }
-                                                    setEditingFolderId(null);
-                                                }
-                                            }}
-                                            style={{ background: 'rgba(255,255,255,0.1)', color: 'inherit', border: '1px solid var(--theme-color)', outline: 'none', borderRadius: '4px', padding: '2px 4px', width: '100px' }}
-                                            onClick={e => e.stopPropagation()}
-                                        />
-                                    ) : (
-                                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
-                                    )}
-                                </div>
-                                <div className="folder-actions" style={{ display: 'flex', gap: '8px', opacity: 0.5 }}>
-                                    <i 
-                                        className="ri-edit-line" 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            setEditingFolderId(f.id);
-                                            setFolderNameInput(f.name);
-                                        }}
-                                    ></i>
-                                    <i 
-                                        className="ri-delete-bin-line" 
-                                        style={{ color: '#ef4444' }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            e.preventDefault();
-                                            if (window.confirm(locale === 'zh' ? '确定删除该文件夹吗？(代码片段不会被删除)' : 'Delete this folder? (Snippets will not be deleted)')) {
-                                                deleteFolder(f.id).then(() => {
-                                                    if (filterType === 'folder' && activeTab === f.id) {
-                                                        setFilterType('all');
-                                                        setActiveTab('all');
-                                                    }
-                                                    if (onFoldersChange) onFoldersChange();
-                                                });
-                                            }
-                                        }}
-                                    ></i>
-                                </div>
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </div>
             
             <div className="nav-section scrollable">
                 <div 

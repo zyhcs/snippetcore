@@ -205,7 +205,12 @@ function App() {
               }
           } catch (err: any) {
               console.error("Failed to setup global shortcut", err);
-              showToast("Shortcut Error: " + (err?.message || String(err)), "error");
+              const errMsg = err?.message || String(err);
+              if (errMsg.includes('already registered') || errMsg.includes('occupied') || errMsg.includes('System')) {
+                  showToast(appSettings.locale === 'zh' ? `快捷键 [${currentGlobalShortcutKey}] 被占用或无效！` : `Shortcut [${currentGlobalShortcutKey}] is occupied or invalid!`, "error");
+              } else {
+                  showToast(appSettings.locale === 'zh' ? `快捷键注册失败：请检查格式是否正确 (${currentGlobalShortcutKey})` : `Failed to register shortcut (${currentGlobalShortcutKey})`, "error");
+              }
           }
       };
 
