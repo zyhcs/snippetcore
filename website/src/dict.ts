@@ -9,7 +9,7 @@ export const dict = {
       github: 'GitHub'
     },
     hero: {
-      badge: 'v0.2.2 is now available',
+      badge: 'v0.2.3 is now available',
       title1: 'The Ultimate ',
       highlight: 'Code Snippet',
       title2: ' Manager.',
@@ -64,7 +64,7 @@ export const dict = {
       github: '开源仓库'
     },
     hero: {
-      badge: 'v0.2.2 现已发布',
+      badge: 'v0.2.3 现已发布',
       title1: '终极',
       highlight: '代码片段',
       title2: '管理利器',
