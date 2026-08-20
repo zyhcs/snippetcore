@@ -133,6 +133,7 @@
     },
     "dialog:allow-confirm",
     "dialog:allow-ask",
-    "dialog:allow-message"
+    "dialog:allow-message",
+    "core:window:allow-set-title"
   ]
 }
